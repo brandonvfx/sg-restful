@@ -27,6 +27,6 @@ _testmain.go
 .env
 
 gin-bin
-go-restful
+sg-restful
 
 Godeps/_workspace
