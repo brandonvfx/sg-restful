@@ -1,4 +1,4 @@
-# SG Restful - WIP
+# SG Restful - WIP [![Build Status](https://travis-ci.org/brandonvfx/sg-restful.svg?branch=master)](https://travis-ci.org/brandonvfx/sg-restful)
 
 ## NOT PRODUCTION READY!
 
