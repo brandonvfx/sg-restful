@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -75,104 +74,6 @@ type queryCondition struct {
 }
 
 // Handlers
-func entityGetHandler(rw http.ResponseWriter, req *http.Request) {
-	log.Debug("Calling entityGetHandler")
-	vars := mux.Vars(req)
-	entity_type := vars["entity_type"]
-	log.Debug("Entity Type:", entity_type)
-
-	query := map[string]interface{}{
-		"return_fields":         nil,
-		"type":                  entity_type,
-		"return_paging_info":    true,
-		"api_return_image_urls": true,
-		"return_only":           "active",
-		"paging": map[string]int{
-			"current_page":      1,
-			"entities_per_page": 1,
-		},
-		"filters": nil,
-	}
-
-	entityIdStr, hasId := vars["id"]
-	if hasId {
-		entityId, err := strconv.Atoi(entityIdStr)
-		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		query["filters"] = map[string]interface{}{
-			"logical_operator": "and",
-			"conditions": []map[string]interface{}{
-				map[string]interface{}{
-					"path":     "id",
-					"relation": "is",
-					"values":   []int{int(entityId)},
-				},
-			},
-		}
-	} else {
-		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintln(rw, "Id missing")
-		return
-	}
-
-	req.ParseForm()
-
-	fieldsStr := req.FormValue("fields")
-	fields := []string{"id"}
-	if fieldsStr != "" {
-		fields = strings.Split(fieldsStr, ",")
-	}
-	query["return_fields"] = fields
-
-	log.Debug(query)
-
-	sg_conn, ok := context.GetOk(req, "sg_conn")
-	if !ok {
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	sg := sg_conn.(Shotgun)
-	sgReq, err := sg.Request("read", query)
-	if err != nil {
-		log.Error("Request Error: ", err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	var readResp readResponse
-	respBody, err := ioutil.ReadAll(sgReq.Body)
-	if err != nil {
-		log.Error(err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	err = json.Unmarshal(respBody, &readResp)
-	if err != nil {
-		log.Error(err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	log.Debug("Response: ", readResp)
-
-	if len(readResp.Results.Entities) == 0 {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	jsonResp, err := json.Marshal(readResp.Results.Entities[0])
-
-	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusOK)
-	rw.Write(jsonResp)
-}
 
 func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 	log.Debug("Calling entityGetAllHandler")
@@ -180,27 +81,7 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 	entity_type := vars["entity_type"]
 	log.Debug("Entity Type:", entity_type)
 
-	paging := map[string]int{
-		"current_page":      1,
-		"entities_per_page": 500,
-	}
-
-	// Defualt blank filter
-	// {"logical_operator": "and", "conditions": []}
-	query := map[string]interface{}{
-		"return_fields":         []string{"id"},
-		"type":                  entity_type,
-		"return_paging_info":    true,
-		"api_return_image_urls": true,
-		"return_only":           "active",
-		"paging":                nil,
-		"filters": map[string]interface{}{
-			"logical_operator": "and",
-			"conditions":       make([]string, 0),
-		},
-	}
-
-	new_query := newReadQuery(entity_type)
+	query := newReadQuery(entity_type)
 
 	req.ParseForm()
 
@@ -222,8 +103,7 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 				if err != nil {
 					log.Errorf("Could not convert page '%v' to int", value)
 				} else {
-					paging["current_page"] = page
-					new_query.Paging["current_page"] = page
+					query.Paging["current_page"] = page
 				}
 			}
 		case "limit":
@@ -232,24 +112,47 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 				if err != nil {
 					log.Errorf("Could not convert limit '%v' to int", value)
 				} else {
-					paging["entities_per_page"] = limit
-					new_query.Paging["entities_per_page"] = limit
+					query.Paging["entities_per_page"] = limit
 				}
 			}
 		case "fields":
 			fields := []string{"id"}
 			if value != "" {
 				fields = strings.Split(value, ",")
-				new_query.ReturnFields = fields
+				query.ReturnFields = fields
 			}
 
 		default:
-			log.Infof("Default: %v", k)
+			log.Infof("Default: %v, '%v'", k, value)
+			var values []interface{}
+			qsValues := strings.Split(value, ",")
+			log.Infof("Values: %v", qsValues)
+
+			for v := range qsValues {
+				valueInt, err := strconv.Atoi(qsValues[v])
+				if err == nil {
+					log.Infof("Is Int: %v", valueInt)
+					values = append(values, valueInt)
+					continue
+				}
+				values = append(values, qsValues[v])
+			}
+
+			relation := "is"
+			if len(values) > 1 {
+				relation = "in"
+			}
+
+			cond := queryCondition{
+				Path:     k,
+				Relation: relation,
+				Values:   values,
+			}
+
+			query.Filters.AddCondition(cond)
 		}
 
 	}
-
-	query["paging"] = paging
 
 	log.Debugf("Query: %v", query)
 
@@ -259,10 +162,8 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	sg := sg_conn.(Shotgun)
-	new_query_bodyJson, _ := json.Marshal(new_query)
-	log.Debugf("New Query Json: %v", string(new_query_bodyJson))
 
-	sgReq, err := sg.Request("read", new_query)
+	sgReq, err := sg.Request("read", query)
 	if err != nil {
 		log.Error("Request Error: ", err)
 		rw.WriteHeader(http.StatusInternalServerError)

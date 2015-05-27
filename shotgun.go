@@ -75,8 +75,6 @@ func (sg *Shotgun) Request(method_name string, query interface{}) (*http.Respons
 
 	// requestData["params"][0] = sg.creds()
 	// requestData["params"][1] =
-	query_json, _ := json.Marshal(query)
-	log.Debugf("Json Orig Query: %v", string(query_json))
 
 	bodyJson, err := json.Marshal(requestData)
 	log.Debug("Json Request:", string(bodyJson))
