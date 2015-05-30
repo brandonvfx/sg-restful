@@ -121,6 +121,33 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 				fields = strings.Split(value, ",")
 				query.ReturnFields = fields
 			}
+		case "q":
+			var queryData [][]interface{}
+
+			err := json.Unmarshal([]byte(value), &queryData)
+			if err != nil {
+				log.Error(err)
+				rw.WriteHeader(http.StatusBadRequest)
+				return
+			}
+
+			log.Debugf("query: %v", queryData)
+			jsonQuery, err := json.Marshal(queryData)
+			if err != nil {
+				log.Error(err)
+				rw.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			log.Debugf("query json: %s", jsonQuery)
+
+			for _, filter := range queryData {
+				cond := queryCondition{
+					Path:     filter[0].(string),
+					Relation: filter[1].(string),
+					Values:   []interface{}{filter[2]},
+				}
+				query.Filters.AddCondition(cond)
+			}
 
 		default:
 			log.Infof("Default: %v, '%v'", k, value)
