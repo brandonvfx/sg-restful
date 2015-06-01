@@ -95,5 +95,5 @@ func entityDeleteHandler(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rw.WriteHeader(http.StatusGone)
+	rw.WriteHeader(http.StatusOK)
 }

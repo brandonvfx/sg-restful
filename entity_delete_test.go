@@ -70,7 +70,7 @@ func TestDeleteSuccess(t *testing.T) {
 
 	context.Set(req, "sg_conn", *client)
 	Router().ServeHTTP(w, req)
-	assert.Equal(t, http.StatusGone, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 }
 
 func TestDeleteMissing(t *testing.T) {

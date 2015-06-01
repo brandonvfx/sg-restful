@@ -28,6 +28,11 @@
 		{
 			"ImportPath": "github.com/meatballhat/negroni-logrus",
 			"Rev": "eed9b3e979c39c3cd0a639b6c3a58d604f262b96"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.0",
+			"Rev": "232e8563676cd15c3a36ba5e675ad4312ac4cb11"
 		}
 	]
 }
