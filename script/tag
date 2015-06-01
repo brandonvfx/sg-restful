@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+version="$(cat version)"
+
+echo git tag -m \"Tagging v${version}\" ${version}
