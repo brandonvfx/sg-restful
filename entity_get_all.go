@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -73,6 +75,20 @@ type queryCondition struct {
 	Values   []interface{} `json:"values"`
 }
 
+func newQueryCondition(path string, relation string, values interface{}) queryCondition {
+	cond := queryCondition{
+		Path:     path,
+		Relation: relation,
+	}
+	switch reflect.TypeOf(values).Kind() {
+	case reflect.Slice:
+		cond.Values = values.([]interface{})
+	default:
+		cond.Values = []interface{}{values}
+	}
+	return cond
+}
+
 // Handlers
 
 func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
@@ -100,8 +116,12 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 		case "page":
 			if value != "" {
 				page, err := strconv.Atoi(value)
+				log.Infof("Could not convert page '%v' to int", value)
 				if err != nil {
 					log.Errorf("Could not convert page '%v' to int", value)
+					rw.WriteHeader(http.StatusBadRequest)
+					fmt.Fprintf(rw, "Could not convert page '%v' to int", value)
+					return
 				} else {
 					query.Paging["current_page"] = page
 				}
@@ -109,8 +129,12 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 		case "limit":
 			if value != "" {
 				limit, err := strconv.Atoi(value)
+				log.Infof("Could not convert limit '%v' to int", value)
 				if err != nil {
 					log.Errorf("Could not convert limit '%v' to int", value)
+					rw.WriteHeader(http.StatusBadRequest)
+					fmt.Fprintf(rw, "Could not convert limit '%v' to int", value)
+					return
 				} else {
 					query.Paging["entities_per_page"] = limit
 				}
@@ -122,61 +146,53 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 				query.ReturnFields = fields
 			}
 		case "q":
-			var queryData [][]interface{}
-
-			err := json.Unmarshal([]byte(value), &queryData)
+			// var queryData [][]interface{}
+			queryFilters, err := parseQuery(value)
 			if err != nil {
-				log.Error(err)
-				rw.WriteHeader(http.StatusBadRequest)
+				qpeError := err.(QueryParseError)
+				log.Error("Request Error: ", qpeError)
+				rw.WriteHeader(qpeError.StatusCode)
 				return
 			}
+			query.Filters = queryFilters
 
-			log.Debugf("query: %v", queryData)
-			jsonQuery, err := json.Marshal(queryData)
+			log.Debugf("query: %v", query)
+			jsonQuery, err := json.Marshal(query)
 			if err != nil {
 				log.Error(err)
-				rw.WriteHeader(http.StatusBadRequest)
+				rw.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			log.Debugf("query json: %s", jsonQuery)
 
-			for _, filter := range queryData {
-				cond := queryCondition{
-					Path:     filter[0].(string),
-					Relation: filter[1].(string),
-					Values:   []interface{}{filter[2]},
-				}
-				query.Filters.AddCondition(cond)
-			}
+			// default:
+			// 	log.Infof("Default: %v, '%v'", k, value)
+			// 	var values []interface{}
+			// 	qsValues := strings.Split(value, ",")
+			// 	log.Infof("Values: %v", qsValues)
 
-		default:
-			log.Infof("Default: %v, '%v'", k, value)
-			var values []interface{}
-			qsValues := strings.Split(value, ",")
-			log.Infof("Values: %v", qsValues)
+			// 	for v := range qsValues {
+			// 		valueInt, err := strconv.Atoi(qsValues[v])
+			// 		if err == nil {
+			// 			log.Infof("Is Int: %v", valueInt)
+			// 			values = append(values, valueInt)
+			// 			continue
+			// 		}
+			// 		values = append(values, qsValues[v])
+			// 	}
 
-			for v := range qsValues {
-				valueInt, err := strconv.Atoi(qsValues[v])
-				if err == nil {
-					log.Infof("Is Int: %v", valueInt)
-					values = append(values, valueInt)
-					continue
-				}
-				values = append(values, qsValues[v])
-			}
+			// 	relation := "is"
+			// 	if len(values) > 1 {
+			// 		relation = "in"
+			// 	}
 
-			relation := "is"
-			if len(values) > 1 {
-				relation = "in"
-			}
+			// 	cond := queryCondition{
+			// 		Path:     k,
+			// 		Relation: relation,
+			// 		Values:   values,
+			// 	}
 
-			cond := queryCondition{
-				Path:     k,
-				Relation: relation,
-				Values:   values,
-			}
-
-			query.Filters.AddCondition(cond)
+			// 	query.Filters.AddCondition(cond)
 		}
 
 	}
@@ -212,6 +228,11 @@ func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	log.Debug("Response: ", readResp)
+
+	if readResp.Exception {
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte(readResp.Message))
+	}
 
 	if len(readResp.Results.Entities) == 0 {
 		rw.WriteHeader(http.StatusNoContent)

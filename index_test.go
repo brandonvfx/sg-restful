@@ -29,12 +29,11 @@ func mockShotgun(code int, body string) (*httptest.Server, *Shotgun) {
 
 	httpClient := &http.Client{Transport: transport}
 
-	server_url, _ := url.Parse(server.URL)
 	// Update SG_HOST so that the middleware doesn't break during tesing.
 	SG_HOST = server.URL
 	var client *Shotgun
 	client = &Shotgun{
-		ServerUrl:  server_url,
+		ServerUrl:  server.URL,
 		ScriptName: "fake-script",
 		ScriptKey:  "fake-key",
 		client:     *httpClient,
@@ -118,12 +117,8 @@ func TestIndexBadShotgunHost(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
 
-	// server, _ := mockShotgun(200, "200 Not Ok - Because Shotgun.")
-	// defer server.Close()
-
-	u, _ := url.Parse("http://localhost:102782/")
 	context.Set(req, "sg_conn", Shotgun{
-		ServerUrl:  u,
+		ServerUrl:  "http://localhost:102782/",
 		ScriptName: "fake-script",
 		ScriptKey:  "fake-key",
 		client:     http.Client{},

@@ -1,73 +1,47 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestShotgunScript(t *testing.T) {
 	host := "http://localhost"
 	script := "fake-script"
 	key := "fake-key"
-	sg := NewShotgun(
-		host,
-		script,
-		key,
-	)
 
-	expectedUrl := host + "/api3/json"
-	if sg.ServerUrl.String() != expectedUrl {
-		t.Errorf("%v != %s", sg.ServerUrl.String())
+	sg := NewShotgun(host, script, key)
+
+	expectedCreds := map[string]string{
+		"script_name": "fake-script",
+		"script_key":  "fake-key",
 	}
-
 	creds := sg.Creds()
 
-	credsScript, ok := creds["script_name"]
-	if !ok {
-		t.Error("Creds map missing script_name")
-	}
-	if credsScript != script {
-		t.Errorf("Script name miss-match: %v != %v", credsScript, script)
-	}
-
-	credsKey, ok := creds["script_key"]
-	if !ok {
-		t.Error("Creds map missing script_key")
-	}
-	if credsKey != key {
-		t.Errorf("Script key miss-match: %v != %v", credsKey, key)
-	}
-
+	assert.Equal(t, expectedCreds, creds)
+	assert.NotEmpty(t, sg.ServerUrl)
 }
 
 func TestShotgunUser(t *testing.T) {
 	host := "http://localhost"
 	login := "fake-login"
 	password := "fake-pass"
-	sg := NewUserShotgun(
-		host,
-		login,
-		password,
-	)
 
-	expectedUrl := host + "/api3/json"
-	if sg.ServerUrl.String() != expectedUrl {
-		t.Errorf("%v != %s", sg.ServerUrl.String())
+	sg := NewUserShotgun(host, login, password)
+
+	expectedCreds := map[string]string{
+		"user_login":    "fake-login",
+		"user_password": "fake-pass",
 	}
 
 	creds := sg.Creds()
+	assert.Equal(t, expectedCreds, creds)
+	assert.NotEmpty(t, sg.ServerUrl)
 
-	credsLogin, ok := creds["user_login"]
-	if !ok {
-		t.Error("Creds map missing user_login")
-	}
-	if credsLogin != login {
-		t.Errorf("User login miss-match: %v != %v", credsLogin, login)
-	}
+}
 
-	credsPass, ok := creds["user_password"]
-	if !ok {
-		t.Error("Creds map missing user_password")
-	}
-	if credsPass != password {
-		t.Errorf("User password miss-match: %v != %v", credsPass, password)
-	}
-
+func TestShotgunGetFullUrl(t *testing.T) {
+	fullUrl := getFullUrl("http://localhost")
+	assert.Equal(t, "http://localhost/api3/json", fullUrl)
 }

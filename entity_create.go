@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -26,14 +27,19 @@ func entityCreateHandler(rw http.ResponseWriter, req *http.Request) {
 
 	var postData map[string]interface{}
 	postBody, err := ioutil.ReadAll(req.Body)
+	log.Debugf("Post Body: %s", postBody)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Bad Request Body: %v", err)
+		rw.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(rw, err)
 		return
 	}
 
 	err = json.Unmarshal(postBody, &postData)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Bad Json: %v", err)
+		rw.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(rw, err)
 		return
 	}
 	log.Debug("Post Data:", postData)
@@ -62,7 +68,8 @@ func entityCreateHandler(rw http.ResponseWriter, req *http.Request) {
 	sg := sg_conn.(Shotgun)
 	sgReq, err := sg.Request("create", query)
 	if err != nil {
-		log.Error("Request Error: ", err)
+		log.Errorf("Request Error: %s", err)
+		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -70,11 +77,15 @@ func entityCreateHandler(rw http.ResponseWriter, req *http.Request) {
 	respBody, err := ioutil.ReadAll(sgReq.Body)
 	if err != nil {
 		log.Error(err)
+		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	log.Debugf("Json Response: %s", respBody)
+
 	err = json.Unmarshal(respBody, &createResp)
 	if err != nil {
 		log.Error(err)
+		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	log.Debug("Response: ", createResp)
@@ -82,6 +93,8 @@ func entityCreateHandler(rw http.ResponseWriter, req *http.Request) {
 	if createResp.Exception {
 		if strings.Contains(createResp.Message, "unique") {
 			rw.WriteHeader(http.StatusConflict)
+		} else if strings.Contains(createResp.Message, "Permission") {
+			rw.WriteHeader(http.StatusForbidden)
 		} else {
 			rw.WriteHeader(http.StatusBadRequest)
 		}

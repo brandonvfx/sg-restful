@@ -67,6 +67,7 @@ func ShotgunAuthMiddleware(rw http.ResponseWriter, req *http.Request, next http.
 
 	}
 	connectionCache[hash] = conn
+	log.Debugf("Connection: %v", conn)
 	context.Set(req, "sg_conn", conn)
 
 	next(rw, req)

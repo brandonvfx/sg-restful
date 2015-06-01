@@ -44,12 +44,14 @@ func entityUpdateHandler(rw http.ResponseWriter, req *http.Request) {
 	patchBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		log.Error(err)
+		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = json.Unmarshal(patchBody, &patchData)
 	if err != nil {
 		log.Error(err)
+		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	log.Info("Patch Data:", patchData)
@@ -79,6 +81,7 @@ func entityUpdateHandler(rw http.ResponseWriter, req *http.Request) {
 	sgReq, err := sg.Request("update", query)
 	if err != nil {
 		log.Error("Request Error: ", err)
+		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -86,12 +89,14 @@ func entityUpdateHandler(rw http.ResponseWriter, req *http.Request) {
 	respBody, err := ioutil.ReadAll(sgReq.Body)
 	if err != nil {
 		log.Error(err)
+		rw.WriteHeader(http.StatusBadGateway)
 		return
 	}
 
 	err = json.Unmarshal(respBody, &updateResp)
 	if err != nil {
 		log.Error(err)
+		rw.WriteHeader(http.StatusBadGateway)
 		return
 	}
 
@@ -100,6 +105,10 @@ func entityUpdateHandler(rw http.ResponseWriter, req *http.Request) {
 	if updateResp.Exception {
 		if strings.Contains(updateResp.Message, "unique") {
 			rw.WriteHeader(http.StatusConflict)
+		} else if strings.Contains(updateResp.Message, "Permission") {
+			rw.WriteHeader(http.StatusForbidden)
+		} else if strings.Contains(updateResp.Message, "does not exist") {
+			rw.WriteHeader(http.StatusNotFound)
 		} else {
 			rw.WriteHeader(http.StatusBadRequest)
 		}
