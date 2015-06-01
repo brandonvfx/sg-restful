@@ -7,11 +7,12 @@ import (
 	"net/url"
 	"testing"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/context"
 )
 
 func init() {
-	// log.SetLevel(log.PanicLevel)
+	log.SetLevel(log.PanicLevel)
 }
 
 func mockShotgun(code int, body string) (*httptest.Server, *Shotgun) {

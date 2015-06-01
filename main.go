@@ -11,7 +11,7 @@ import (
 	"github.com/meatballhat/negroni-logrus"
 )
 
-var VERSION string
+var Version string
 var SG_HOST string
 
 func Router() *mux.Router {
@@ -41,7 +41,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "sg-restful"
-	app.Version = VERSION
+	app.Version = Version
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -59,7 +59,7 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) {
-		log.Infof("sg-restful Version: %v", VERSION)
+		log.Infof("sg-restful Version: %v", Version)
 		log.Infof("Shotgun Host: %v", c.String("shotgun-host"))
 		SG_HOST = c.String("shotgun-host")
 		r := Router()

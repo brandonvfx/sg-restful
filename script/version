@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+version="$(git describe --tags HEAD 2>/dev/null || true)"
+
+if [ -z "$version" ]; then
+  version="$(cat version)"
+  sha="$(git rev-parse --short HEAD 2>/dev/null || true)"
+  [ -z "$sha" ] || version="${version}+${sha}"
+fi
+
+echo "${version}"

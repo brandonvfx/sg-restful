@@ -59,7 +59,7 @@ func indexHandler(rw http.ResponseWriter, req *http.Request) {
 		int(versionSlice[1].(float64)),
 		int(versionSlice[2].(float64)))
 
-	infoJson["rest_version"] = VERSION
+	infoJson["rest_version"] = Version
 
 	encoder := json.NewEncoder(rw)
 	err = encoder.Encode(infoJson)
