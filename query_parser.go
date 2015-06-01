@@ -115,7 +115,7 @@ func parseQuery(queryStr string) (readFilters, error) {
 			}
 		}
 		queryData := map[string]interface{}{
-			"logical_operator": "add",
+			"logical_operator": "and",
 			"conditions":       filters,
 		}
 		err = mapToReadFilters(queryData, &query)
