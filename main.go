@@ -27,8 +27,8 @@ func router(config clientConfig) *mux.Router {
 		HandlerFunc(entityDeleteHandler(config)).Methods("DELETE")
 	entityRoutes.Path("/{entity_type}/{id:[0-9]+}/revive").
 		HandlerFunc(entityReviveHandler(config)).Methods("POST")
-	entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers").
-		HandlerFunc(entityGetFollowersHandler(config)).Methods("GET")
+	// entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers").
+	// 	HandlerFunc(entityGetFollowersHandler(config)).Methods("GET")
 	//entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers").
 	//             HandlerFunc(entityAddFollowersHandler(config)).Methods("POST")
 	//entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers/{user_type}/{user_id:[0-9]+}").
