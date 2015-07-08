@@ -22,9 +22,9 @@ type entityResponse struct {
 
 type readResponse struct {
 	Results   entityResponse `json:"results"`
-	Exception bool           `json:"exception",omitempty`
-	Message   string         `json:"message",omitempty`
-	ErrorCode int            `json:"error_code",omitempty`
+	Exception bool           `json:"exception,omitempty"`
+	Message   string         `json:"message,omitempty"`
+	ErrorCode int            `json:"error_code,omitempty"`
 }
 
 // Query Structs
@@ -32,18 +32,18 @@ type readQuery struct {
 	ReturnFields       []string       `json:"return_fields"`
 	Type               string         `json:"type"`
 	ReturnPagingInfo   bool           `json:"return_paging_info"`
-	ApiReturnImageUrls bool           `json:"api_return_image_urls"`
+	APIReturnImageUrls bool           `json:"api_return_image_urls"`
 	ReturnOnly         string         `json:"return_only"`
 	Paging             map[string]int `json:"paging"`
 	Filters            readFilters    `json:"filters"`
 }
 
-func newReadQuery(entity_type string) readQuery {
+func newReadQuery(entityType string) readQuery {
 	return readQuery{
 		ReturnFields:       []string{"id"},
-		Type:               entity_type,
+		Type:               entityType,
 		ReturnPagingInfo:   true,
-		ApiReturnImageUrls: true,
+		APIReturnImageUrls: true,
 		ReturnOnly:         "active",
 		Paging: map[string]int{
 			"current_page":      1,
@@ -91,163 +91,140 @@ func newQueryCondition(path string, relation string, values interface{}) queryCo
 
 // Handlers
 
-func entityGetAllHandler(rw http.ResponseWriter, req *http.Request) {
-	log.Debug("Calling entityGetAllHandler")
-	vars := mux.Vars(req)
-	entity_type := vars["entity_type"]
-	log.Debug("Entity Type:", entity_type)
+func entityGetAllHandler(config clientConfig) func(rw http.ResponseWriter, req *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		log.Debug("Calling entityGetAllHandler")
+		vars := mux.Vars(req)
+		entityType, ok := vars["entity_type"]
+		if !ok {
+			log.Errorf("Missing Entity Type")
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		log.Debugf("Entity: %s", entityType)
 
-	query := newReadQuery(entity_type)
+		query := newReadQuery(entityType)
 
-	req.ParseForm()
+		req.ParseForm()
 
-	// Since there woulc be any number of "fields" on an entity
-	// and we want to allow filtering on thoses via the query string.
-	// We have to loop over all query string KVs and pull out the reserved ones
-	// and add all others to the filters.
-	// NOTE: right now we only support simple filtering 'name=foo' becomes ['name', 'is', 'foo']
-	//       I want to add better filtering like ^ for startswith, $ for endswith, % for contains.
-	//       For more advanced searching a new endpoint for search will be added.
-	for k := range req.Form {
-		value := req.FormValue(k)
-		log.Debugf("Field: '%v' Value: '%v'", k, value)
+		// Since there woulc be any number of "fields" on an entity
+		// and we want to allow filtering on thoses via the query string.
+		// We have to loop over all query string KVs and pull out the reserved ones
+		// and add all others to the filters.
+		// NOTE: right now we only support simple filtering 'name=foo' becomes ['name', 'is', 'foo']
+		//       I want to add better filtering like ^ for startswith, $ for endswith, % for contains.
+		//       For more advanced searching a new endpoint for search will be added.
+		for k := range req.Form {
+			value := req.FormValue(k)
+			log.Debugf("Field: '%v' Value: '%v'", k, value)
 
-		switch strings.ToLower(k) {
-		case "page":
-			if value != "" {
-				page, err := strconv.Atoi(value)
-				log.Infof("Could not convert page '%v' to int", value)
-				if err != nil {
-					log.Errorf("Could not convert page '%v' to int", value)
-					rw.WriteHeader(http.StatusBadRequest)
-					fmt.Fprintf(rw, "Could not convert page '%v' to int", value)
-					return
-				} else {
+			switch strings.ToLower(k) {
+			case "page":
+				if value != "" {
+					page, err := strconv.Atoi(value)
+					log.Infof("Could not convert page '%v' to int", value)
+					if err != nil {
+						log.Errorf("Could not convert page '%v' to int", value)
+						rw.WriteHeader(http.StatusBadRequest)
+						fmt.Fprintf(rw, "Could not convert page '%v' to int", value)
+						return
+					}
 					query.Paging["current_page"] = page
 				}
-			}
-		case "limit":
-			if value != "" {
-				limit, err := strconv.Atoi(value)
-				log.Infof("Could not convert limit '%v' to int", value)
-				if err != nil {
-					log.Errorf("Could not convert limit '%v' to int", value)
-					rw.WriteHeader(http.StatusBadRequest)
-					fmt.Fprintf(rw, "Could not convert limit '%v' to int", value)
-					return
-				} else {
+			case "limit":
+				if value != "" {
+					limit, err := strconv.Atoi(value)
+					log.Infof("Could not convert limit '%v' to int", value)
+					if err != nil {
+						log.Errorf("Could not convert limit '%v' to int", value)
+						rw.WriteHeader(http.StatusBadRequest)
+						fmt.Fprintf(rw, "Could not convert limit '%v' to int", value)
+						return
+					}
 					query.Paging["entities_per_page"] = limit
+
 				}
+			case "fields":
+				fields := []string{"id"}
+				if value != "" {
+					fields = strings.Split(value, ",")
+					query.ReturnFields = fields
+				}
+			case "q":
+				// var queryData [][]interface{}
+				queryFilters, err := parseQuery(value)
+				if err != nil {
+					qpeError := err.(queryParseError)
+					log.Error("Request Error: ", qpeError)
+					rw.WriteHeader(qpeError.StatusCode)
+					return
+				}
+				query.Filters = queryFilters
+
+				log.Debugf("Query: %v", query)
+				jsonQuery, err := json.Marshal(query)
+				if err != nil {
+					log.Error(err)
+					rw.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				log.Debugf("query json: %s", jsonQuery)
 			}
-		case "fields":
-			fields := []string{"id"}
-			if value != "" {
-				fields = strings.Split(value, ",")
-				query.ReturnFields = fields
-			}
-		case "q":
-			// var queryData [][]interface{}
-			queryFilters, err := parseQuery(value)
-			if err != nil {
-				qpeError := err.(QueryParseError)
-				log.Error("Request Error: ", qpeError)
-				rw.WriteHeader(qpeError.StatusCode)
-				return
-			}
-			query.Filters = queryFilters
 
-			log.Debugf("query: %v", query)
-			jsonQuery, err := json.Marshal(query)
-			if err != nil {
-				log.Error(err)
-				rw.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			log.Debugf("query json: %s", jsonQuery)
-
-			// default:
-			// 	log.Infof("Default: %v, '%v'", k, value)
-			// 	var values []interface{}
-			// 	qsValues := strings.Split(value, ",")
-			// 	log.Infof("Values: %v", qsValues)
-
-			// 	for v := range qsValues {
-			// 		valueInt, err := strconv.Atoi(qsValues[v])
-			// 		if err == nil {
-			// 			log.Infof("Is Int: %v", valueInt)
-			// 			values = append(values, valueInt)
-			// 			continue
-			// 		}
-			// 		values = append(values, qsValues[v])
-			// 	}
-
-			// 	relation := "is"
-			// 	if len(values) > 1 {
-			// 		relation = "in"
-			// 	}
-
-			// 	cond := queryCondition{
-			// 		Path:     k,
-			// 		Relation: relation,
-			// 		Values:   values,
-			// 	}
-
-			// 	query.Filters.AddCondition(cond)
 		}
 
+		log.Debugf("Query: %v", query)
+
+		sgConn, ok := context.GetOk(req, "sgConn")
+		if !ok {
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		sg := sgConn.(Shotgun)
+
+		sgReq, err := sg.Request("read", query)
+		if err != nil {
+			log.Error("Request Error: ", err)
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		var readResp readResponse
+		respBody, err := ioutil.ReadAll(sgReq.Body)
+		if err != nil {
+			log.Error(err)
+			rw.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		err = json.Unmarshal(respBody, &readResp)
+		if err != nil {
+			log.Error(err)
+			rw.WriteHeader(http.StatusBadGateway)
+			return
+		}
+
+		log.Debugf("Response: %v", readResp)
+
+		if readResp.Exception {
+			rw.WriteHeader(http.StatusInternalServerError)
+			rw.Write([]byte(readResp.Message))
+		}
+
+		if len(readResp.Results.Entities) == 0 {
+			rw.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		var jsonResp []byte
+		jsonResp, err = json.Marshal(readResp.Results.Entities)
+
+		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		rw.Write(jsonResp)
 	}
-
-	log.Debugf("Query: %v", query)
-
-	sg_conn, ok := context.GetOk(req, "sg_conn")
-	if !ok {
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	sg := sg_conn.(Shotgun)
-
-	sgReq, err := sg.Request("read", query)
-	if err != nil {
-		log.Error("Request Error: ", err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	var readResp readResponse
-	respBody, err := ioutil.ReadAll(sgReq.Body)
-	if err != nil {
-		log.Error(err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	err = json.Unmarshal(respBody, &readResp)
-	if err != nil {
-		log.Error(err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	log.Debug("Response: ", readResp)
-
-	if readResp.Exception {
-		rw.WriteHeader(http.StatusInternalServerError)
-		rw.Write([]byte(readResp.Message))
-	}
-
-	if len(readResp.Results.Entities) == 0 {
-		rw.WriteHeader(http.StatusNoContent)
-		return
-	}
-
-	var jsonResp []byte
-	jsonResp, err = json.Marshal(readResp.Results.Entities)
-
-	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusOK)
-	rw.Write(jsonResp)
 }

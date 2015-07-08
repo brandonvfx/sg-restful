@@ -11,12 +11,12 @@ import (
 
 var queryRegexp = regexp.MustCompile(`^([\w]+)\((.*)\)`)
 
-type QueryParseError struct {
+type queryParseError struct {
 	StatusCode int
 	Message    string
 }
 
-func (qpe QueryParseError) Error() string {
+func (qpe queryParseError) Error() string {
 	return qpe.Message
 }
 
@@ -31,7 +31,7 @@ func parseQuery(queryStr string) (readFilters, error) {
 		matches := queryRegexp.FindStringSubmatch(queryStr)
 		if matches != nil {
 			if len(matches) != 3 {
-				return query, QueryParseError{
+				return query, queryParseError{
 					StatusCode: http.StatusBadRequest,
 					Message:    "Invalid query format",
 				}
@@ -43,7 +43,7 @@ func parseQuery(queryStr string) (readFilters, error) {
 			} else if strings.HasPrefix(matches[2], "[") {
 				filtersStr = "[" + matches[2] + "]"
 			} else {
-				return query, QueryParseError{
+				return query, queryParseError{
 					StatusCode: http.StatusBadRequest,
 					Message:    "Invalid query filter format",
 				}
@@ -52,7 +52,7 @@ func parseQuery(queryStr string) (readFilters, error) {
 			var filters []interface{}
 			err := json.Unmarshal([]byte(filtersStr), &filters)
 			if err != nil {
-				return query, QueryParseError{
+				return query, queryParseError{
 					StatusCode: http.StatusBadRequest,
 					Message:    err.Error(),
 				}
@@ -67,11 +67,10 @@ func parseQuery(queryStr string) (readFilters, error) {
 
 			return query, err
 
-		} else {
-			return query, QueryParseError{
-				StatusCode: http.StatusBadRequest,
-				Message:    "Invalid query format",
-			}
+		}
+		return query, queryParseError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Invalid query format",
 		}
 
 	} else if strings.HasPrefix(queryStr, "{") {
@@ -80,21 +79,21 @@ func parseQuery(queryStr string) (readFilters, error) {
 		var queryData map[string]interface{}
 		err := json.Unmarshal([]byte(queryStr), &queryData)
 		if err != nil {
-			return query, QueryParseError{
+			return query, queryParseError{
 				StatusCode: http.StatusBadRequest,
 				Message:    err.Error(),
 			}
 		}
 
 		if _, ok := queryData["logical_operator"]; !ok {
-			return query, QueryParseError{
+			return query, queryParseError{
 				StatusCode: http.StatusBadRequest,
 				Message:    "Missing key: 'logical_operator'",
 			}
 		}
 
 		if _, ok := queryData["conditions"]; !ok {
-			return query, QueryParseError{
+			return query, queryParseError{
 				StatusCode: http.StatusBadRequest,
 				Message:    "Missing key: 'conditions'",
 			}
@@ -109,7 +108,7 @@ func parseQuery(queryStr string) (readFilters, error) {
 		var filters []interface{}
 		err := json.Unmarshal([]byte(queryStr), &filters)
 		if err != nil {
-			return query, QueryParseError{
+			return query, queryParseError{
 				StatusCode: http.StatusBadRequest,
 				Message:    err.Error(),
 			}
@@ -123,7 +122,7 @@ func parseQuery(queryStr string) (readFilters, error) {
 
 	}
 
-	return query, QueryParseError{
+	return query, queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "Invalid query format",
 	}
@@ -134,7 +133,7 @@ func mapToReadFilters(queryMap map[string]interface{}, query *readFilters) error
 
 	op, ok := queryMap["logical_operator"]
 	if !ok {
-		return QueryParseError{
+		return queryParseError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Missing key: 'logical_operator'",
 		}
@@ -142,7 +141,7 @@ func mapToReadFilters(queryMap map[string]interface{}, query *readFilters) error
 
 	conditions, ok := queryMap["conditions"]
 	if !ok {
-		return QueryParseError{
+		return queryParseError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Missing key: 'conditions'",
 		}

@@ -8,7 +8,7 @@ import (
 )
 
 func TestQueryParserError(t *testing.T) {
-	q := QueryParseError{
+	q := queryParseError{
 		StatusCode: 400,
 		Message:    "Test Message",
 	}
@@ -21,7 +21,7 @@ func TestQueryParserError(t *testing.T) {
 func TestParseQueryAndOrStatementRegExpError(t *testing.T) {
 	_, err := parseQuery("()")
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "Invalid query format",
 	}
@@ -31,7 +31,7 @@ func TestParseQueryAndOrStatementRegExpError(t *testing.T) {
 func TestParseQueryAndOrStatementFilterFormatError(t *testing.T) {
 	_, err := parseQuery("and(foo, bar)")
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "Invalid query filter format",
 	}
@@ -41,7 +41,7 @@ func TestParseQueryAndOrStatementFilterFormatError(t *testing.T) {
 func TestParseQueryAndOrStatementJsonError(t *testing.T) {
 	_, err := parseQuery("and([foo, bar,])")
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "invalid character 'o' in literal false (expecting 'a')",
 	}
@@ -51,7 +51,7 @@ func TestParseQueryAndOrStatementJsonError(t *testing.T) {
 func TestParseQueryAndOrStatementNotAQuery(t *testing.T) {
 	_, err := parseQuery("andwell_this_is_bad")
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "Invalid query format",
 	}
@@ -113,7 +113,7 @@ func TestParseQueryAndOrStatementBasicOrUpper(t *testing.T) {
 func TestParseQueryHashJsonError(t *testing.T) {
 	_, err := parseQuery("{foo}")
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "invalid character 'f' looking for beginning of object key string",
 	}
@@ -123,7 +123,7 @@ func TestParseQueryHashJsonError(t *testing.T) {
 func TestParseQueryHashConditionsOnly(t *testing.T) {
 	_, err := parseQuery(`{"conditions": [["name", "is", "blorg"]]}`)
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "Missing key: 'logical_operator'",
 	}
@@ -133,7 +133,7 @@ func TestParseQueryHashConditionsOnly(t *testing.T) {
 func TestParseQueryHashLogicalOpOnly(t *testing.T) {
 	_, err := parseQuery(`{"logical_operator": "and"}`)
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "Missing key: 'conditions'",
 	}
@@ -143,7 +143,7 @@ func TestParseQueryHashLogicalOpOnly(t *testing.T) {
 func TestParseQueryArrayJsonError(t *testing.T) {
 	_, err := parseQuery("[[foo]]")
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
 		Message:    "invalid character 'o' in literal false (expecting 'a')",
 	}
@@ -203,7 +203,7 @@ func TestMapToReadFiltersConditionsOnlyError(t *testing.T) {
 
 	err := mapToReadFilters(query, &rf)
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusInternalServerError,
 		Message:    "Missing key: 'logical_operator'",
 	}
@@ -218,7 +218,7 @@ func TestMapToReadFiltersLogicalOpOnlyError(t *testing.T) {
 
 	err := mapToReadFilters(query, &rf)
 
-	expectedError := QueryParseError{
+	expectedError := queryParseError{
 		StatusCode: http.StatusInternalServerError,
 		Message:    "Missing key: 'conditions'",
 	}

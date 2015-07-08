@@ -11,10 +11,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-const API_PATH = "/api3/json"
+const apiPath = "/api3/json"
 
 type Shotgun struct {
-	ServerUrl    string
+	ServerURL    string
 	ScriptName   string
 	ScriptKey    string
 	UserLogin    string
@@ -22,24 +22,24 @@ type Shotgun struct {
 	client       http.Client
 }
 
-func getFullUrl(host string) string {
+func getFullURL(host string) string {
 	if !strings.HasPrefix(host, "http") {
 		log.Errorf("Host must start with http:// or https://")
 		return ""
 	}
 
-	fullUrl, err := url.Parse(host)
+	fullURL, err := url.Parse(host)
 	if err != nil {
 		log.Error(err)
 		return ""
 	}
-	fullUrl.Path = API_PATH
-	return fullUrl.String()
+	fullURL.Path = apiPath
+	return fullURL.String()
 }
 
 func NewShotgun(host, scriptName, scriptKey string) Shotgun {
 	return Shotgun{
-		ServerUrl:  getFullUrl(host),
+		ServerURL:  getFullURL(host),
 		ScriptName: scriptName,
 		ScriptKey:  scriptKey,
 		client:     http.Client{},
@@ -48,7 +48,7 @@ func NewShotgun(host, scriptName, scriptKey string) Shotgun {
 
 func NewUserShotgun(host, login, password string) Shotgun {
 	return Shotgun{
-		ServerUrl:    getFullUrl(host),
+		ServerURL:    getFullURL(host),
 		UserLogin:    login,
 		UserPassword: password,
 		client:       http.Client{},
@@ -89,8 +89,8 @@ func (sg *Shotgun) Request(method_name string, query interface{}) (*http.Respons
 		return &http.Response{}, err
 	}
 
-	log.Debugf("Send Request to: %v", sg.ServerUrl)
-	req, err := http.NewRequest("POST", sg.ServerUrl, bytes.NewReader(bodyJson))
+	log.Debugf("Send Request to: %v", sg.ServerURL)
+	req, err := http.NewRequest("POST", sg.ServerURL, bytes.NewReader(bodyJson))
 	if err != nil {
 		log.Error("Shotugn.Request Http Request Error: ", err)
 		return &http.Response{}, err
