@@ -9,6 +9,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/meatballhat/negroni-logrus"
+	"github.com/rs/cors"
 )
 
 var Version string
@@ -75,9 +76,11 @@ func main() {
 		config := newClientConfig(Version, c.String("shotgun-host"))
 
 		r := router(config)
+		corsMiddleware := cors.Default()
 
 		n := negroni.Classic()
 		n.Use(negronilogrus.NewMiddleware())
+		n.Use(corsMiddleware)
 		n.UseHandler(r)
 		n.Run(":" + c.String("port"))
 	}

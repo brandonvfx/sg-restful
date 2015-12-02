@@ -25,7 +25,7 @@ SG Restful using basic auth for getting script and user credentials. This may ch
 
 Script `Authorization` header:
 ```
-Basic <base64 scipt_name:sript_key>
+Basic <base64 script_name:script_key>
 ```
 
 User `Authorization` header:
