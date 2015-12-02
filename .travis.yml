@@ -1,6 +1,23 @@
----
 language: go
 go:
   - 1.3
   - 1.4
+  - 1.5
   - tip
+script: script/test
+before_deploy:
+  - mkdir release
+  - GOOS=linux GOARCH=amd64 go build -o release/sg-restful-linux-amd64 -x -ldflags "-X main.Version=$TRAVIS_TAG" .
+  - GOOS=darwin GOARCH=amd64 go build -o release/sg-restful-darwin-amd64 -x -ldflags "-X main.Version=$TRAVIS_TAG" .
+deploy:
+  provider: releases
+  api_key:
+    secure: F6GIfDUtrXkv2m16QoaIn8qPQzpy7tXL/SQUehFzp/AkgzaYyS5YCUq1Pju+J4HVyr8V7hMy9kzSDiuTcxhWltYoitDnWp+2mZY5V5ow/vTxheegrHwE+gNnwGJg5rDifnEBIL1yL0V2Xxw/7yLAo7izGh0ZWkXaGxqYuQ6RYeNLwGT/qy2CKwtu5ohor3bc5L4dHyHfl57t69K2r6yq1qf6QcMBpbPewXi7oSv1WYFmG53h+vBfNgvjrFJoK6G0xYwpOnt0UxZOCoLUdYyGhCfAxMFFTTN9wrt3TMxk9BVMnYhSMJ5Gyx2kX7M5x05FZuZ5EKcCHbfREy7A88OZ7PBI6mQgwYfvnnQXZV+XPLNRtVp1y2xfhCVmEvbeLU4XlJlbtR1Zc1gmhX1aLwVyrQv4gBWYoevwbQxWWPK1j8clJWS/BxrMfOOynPOyOrMCvFmvIQEgBPbPS9XEc39C7siStQujGEUIzWF4gIeBgFK+VDis4PmUP5tJV9kTYBLoVSpnq82ZlnemBwron+Cy9GyBYd3Z6zt3quc908U5aeWltFoBPi2xJejQHAuKFxQHnULPt9ngZBsBHzwSlvWVsNNjRZKh0j8rtbIvSLKHl/LJjHTse24f3EuJgeIbMnFZhnooyM0ACwgbBtd5bVNjzCuNWt1UBmiK3FBiOfdlqTw=
+  file: 
+    - release/sg-restful-linux-amd64
+    - release/sg-restful-darwin-amd64
+  skip_cleanup: true
+  on:
+    repo: brandonvfx/sg-restful
+    tags: true
+    go: 1.5

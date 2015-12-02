@@ -25,7 +25,7 @@ SG Restful using basic auth for getting script and user credentials. This may ch
 
 Script `Authorization` header:
 ```
-Basic <base64 scipt_name:sript_key>
+Basic <base64 script_name:script_key>
 ```
 
 User `Authorization` header:
@@ -44,7 +44,7 @@ Basic-user <base64 user_name:user_password>
 
 ## Query Syntax
 
-There are 3 formats for the query but they all have the same basic structures for the filters themselves. Each filter is defined by an array of 3 values. 
+There are 3 formats for the query but they all have the same basic structures for the filters themselves. Each filter is defined by an array of 3 values.
 
 ```
 [<name>, <relation>, <values>]
@@ -53,7 +53,7 @@ There are 3 formats for the query but they all have the same basic structures fo
 - Name and relation are both string.
 - Values can be either a value (string, int, bool, etc) or an array of values.
 
-### Format 1 
+### Format 1
 
 ```
 q=and([<name>, <relation>, <values>],...)
@@ -67,8 +67,6 @@ q={"logical_operator":"and", "conditions":[[<name>, <relation>, <values>],...]}
 ```
 
 ### Format 3
-
-**This format is currently has a bug.**
 
 This format the logical_operator is always assumed to be "and".
 

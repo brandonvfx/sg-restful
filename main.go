@@ -9,28 +9,37 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/meatballhat/negroni-logrus"
+	"github.com/rs/cors"
 )
 
 var Version string
-var SG_HOST string
 
-func Router() *mux.Router {
+func router(config clientConfig) *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/", indexHandler(config))
 	r.Handle("/favicon.ico", http.NotFoundHandler())
 
-	auth_middleware := negroni.HandlerFunc(ShotgunAuthMiddleware)
+	authMiddleware := negroni.HandlerFunc(ShotgunAuthMiddleware(config))
 
 	entityRoutes := mux.NewRouter()
-	entityRoutes.Path("/{entity_type}/{id:[0-9]+}").HandlerFunc(entityGetHandler).Methods("GET")
-	entityRoutes.Path("/{entity_type}/{id:[0-9]+}").HandlerFunc(entityUpdateHandler).Methods("PATCH")
-	entityRoutes.Path("/{entity_type}/{id:[0-9]+}").HandlerFunc(entityDeleteHandler).Methods("DELETE")
-	entityRoutes.Path("/{entity_type}").HandlerFunc(entityGetAllHandler).Methods("GET")
-	entityRoutes.Path("/{entity_type}").HandlerFunc(entityCreateHandler).Methods("POST")
+	entityRoutes.Path("/{entity_type}/{id:[0-9]+}").HandlerFunc(entityGetHandler(config)).Methods("GET")
+	entityRoutes.Path("/{entity_type}/{id:[0-9]+}").HandlerFunc(entityUpdateHandler(config)).Methods("PATCH")
+	entityRoutes.Path("/{entity_type}/{id:[0-9]+}").
+		HandlerFunc(entityDeleteHandler(config)).Methods("DELETE")
+	entityRoutes.Path("/{entity_type}/{id:[0-9]+}/revive").
+		HandlerFunc(entityReviveHandler(config)).Methods("POST")
+	// entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers").
+	// 	HandlerFunc(entityGetFollowersHandler(config)).Methods("GET")
+	//entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers").
+	//             HandlerFunc(entityAddFollowersHandler(config)).Methods("POST")
+	//entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers/{user_type}/{user_id:[0-9]+}").
+	//		       HandlerFunc(entityDeleteFollowersHandler(config)).Methods("DELETE")
+	entityRoutes.Path("/{entity_type}").HandlerFunc(entityGetAllHandler(config)).Methods("GET")
+	entityRoutes.Path("/{entity_type}").HandlerFunc(entityCreateHandler(config)).Methods("POST")
 
 	// Adds auth on the sub router so that / can be accessed freely.
 	r.PathPrefix("/{entity_type}").Handler(negroni.New(
-		auth_middleware,
+		authMiddleware,
 		negroni.Wrap(entityRoutes),
 	))
 
@@ -60,12 +69,18 @@ func main() {
 
 	app.Action = func(c *cli.Context) {
 		log.Infof("sg-restful Version: %v", Version)
+		if c.String("shotgun-host") == "" {
+			log.Fatalln("Shotgun host not set.")
+		}
 		log.Infof("Shotgun Host: %v", c.String("shotgun-host"))
-		SG_HOST = c.String("shotgun-host")
-		r := Router()
+		config := newClientConfig(Version, c.String("shotgun-host"))
+
+		r := router(config)
+		corsMiddleware := cors.Default()
 
 		n := negroni.Classic()
 		n.Use(negronilogrus.NewMiddleware())
+		n.Use(corsMiddleware)
 		n.UseHandler(r)
 		n.Run(":" + c.String("port"))
 	}

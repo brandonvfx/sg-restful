@@ -20,7 +20,7 @@ func TestShotgunScript(t *testing.T) {
 	creds := sg.Creds()
 
 	assert.Equal(t, expectedCreds, creds)
-	assert.NotEmpty(t, sg.ServerUrl)
+	assert.NotEmpty(t, sg.ServerURL)
 }
 
 func TestShotgunUser(t *testing.T) {
@@ -37,11 +37,11 @@ func TestShotgunUser(t *testing.T) {
 
 	creds := sg.Creds()
 	assert.Equal(t, expectedCreds, creds)
-	assert.NotEmpty(t, sg.ServerUrl)
+	assert.NotEmpty(t, sg.ServerURL)
 
 }
 
 func TestShotgunGetFullUrl(t *testing.T) {
-	fullUrl := getFullUrl("http://localhost")
-	assert.Equal(t, "http://localhost/api3/json", fullUrl)
+	fullURL := getFullURL("http://localhost")
+	assert.Equal(t, "http://localhost/api3/json", fullURL)
 }

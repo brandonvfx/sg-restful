@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeleteNoId(t *testing.T) {
+func TestReviveNoId(t *testing.T) {
 	req := deleteRequest("/Shot/")
 
 	w := httptest.NewRecorder()
@@ -22,8 +22,8 @@ func TestDeleteNoId(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
-func TestDeletePermissionsIssue(t *testing.T) {
-	req := deleteRequest("/Project/75")
+func TestRevivePermissionsIssue(t *testing.T) {
+	req := postRequest("/Project/75/revive", "")
 
 	w := httptest.NewRecorder()
 
@@ -39,8 +39,8 @@ func TestDeletePermissionsIssue(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, w.Code)
 }
 
-func TestDeleteError(t *testing.T) {
-	req := deleteRequest("/Project/75")
+func TestReviveError(t *testing.T) {
+	req := postRequest("/Project/75/revive", "")
 
 	w := httptest.NewRecorder()
 
@@ -53,8 +53,8 @@ func TestDeleteError(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestDeleteSuccess(t *testing.T) {
-	req := deleteRequest("/Project/75")
+func TestReviveSuccess(t *testing.T) {
+	req := postRequest("/Project/75/revive", "")
 
 	w := httptest.NewRecorder()
 
@@ -66,8 +66,8 @@ func TestDeleteSuccess(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestDeleteMissing(t *testing.T) {
-	req := deleteRequest("/Shot/1000000")
+func TestReviveMissing(t *testing.T) {
+	req := postRequest("/Shot/1000000/revive", "")
 
 	w := httptest.NewRecorder()
 
@@ -80,8 +80,8 @@ func TestDeleteMissing(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
-func TestDeleteBadJsonResponse(t *testing.T) {
-	req := deleteRequest("/Project/75")
+func TestReviveBadJsonResponse(t *testing.T) {
+	req := postRequest("/Project/75/revive", "")
 
 	w := httptest.NewRecorder()
 

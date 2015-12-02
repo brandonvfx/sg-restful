@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/brandonvfx/sg-restful",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -30,9 +30,21 @@
 			"Rev": "eed9b3e979c39c3cd0a639b6c3a58d604f262b96"
 		},
 		{
+			"ImportPath": "github.com/rs/cors",
+			"Rev": "ceb1fbf238d7711a11a86a2622d0b85305348aeb"
+		},
+		{
+			"ImportPath": "github.com/rs/xhandler",
+			"Rev": "768e938dd1b2901a776cf66e27a9737d64f9e15f"
+		},
+		{
 			"ImportPath": "github.com/stretchr/testify/assert",
 			"Comment": "v1.0",
 			"Rev": "232e8563676cd15c3a36ba5e675ad4312ac4cb11"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
 		}
 	]
 }

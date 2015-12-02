@@ -13,14 +13,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type deleteResponse struct {
+type reviveResponse struct {
 	Results   bool   `json:"results"`
 	Exception bool   `json:"exception,omitempty"`
 	Message   string `json:"message,omitempty"`
 	ErrorCode int    `json:"error_code,omitempty"`
 }
 
-func entityDeleteHandler(config clientConfig) func(rw http.ResponseWriter, req *http.Request) {
+func entityReviveHandler(config clientConfig) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		entityType, ok := vars["entity_type"]
@@ -57,14 +57,14 @@ func entityDeleteHandler(config clientConfig) func(rw http.ResponseWriter, req *
 			return
 		}
 		sg := sgConn.(Shotgun)
-		sgReq, err := sg.Request("delete", query)
+		sgReq, err := sg.Request("revive", query)
 		if err != nil {
-			log.Error("Request Error: ", err)
+			log.Errorf("Request Error: %v", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		var deleteResp deleteResponse
+		var reviveResp reviveResponse
 		respBody, err := ioutil.ReadAll(sgReq.Body)
 		if err != nil {
 			log.Error(err)
@@ -74,29 +74,29 @@ func entityDeleteHandler(config clientConfig) func(rw http.ResponseWriter, req *
 
 		log.Debugf("Json Response: %s", respBody)
 
-		err = json.Unmarshal(respBody, &deleteResp)
+		err = json.Unmarshal(respBody, &reviveResp)
 		if err != nil {
 			log.Error(err)
 			rw.WriteHeader(http.StatusBadGateway)
 			return
 		}
 
-		log.Debugf("Response: %v", deleteResp)
+		log.Debugf("Response: %v", reviveResp)
 
-		if deleteResp.Exception {
-			if strings.Contains(deleteResp.Message, "Permission") {
+		if reviveResp.Exception {
+			if strings.Contains(reviveResp.Message, "Permission") {
 				rw.WriteHeader(http.StatusForbidden)
-			} else if strings.Contains(deleteResp.Message, "does not exist") {
+			} else if strings.Contains(reviveResp.Message, "does not exist") {
 				rw.WriteHeader(http.StatusNotFound)
 			} else {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			rw.Write(bytes.NewBufferString(deleteResp.Message).Bytes())
+			rw.Write(bytes.NewBufferString(reviveResp.Message).Bytes())
 			return
 		}
 
 		// I'm not sure this can even happen
-		if !deleteResp.Results {
+		if !reviveResp.Results {
 			rw.WriteHeader(http.StatusNotFound)
 			return
 		}

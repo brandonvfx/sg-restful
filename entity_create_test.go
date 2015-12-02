@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,12 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func postRequest(path, body string) *http.Request {
-	req, _ := http.NewRequest("POST", path, bytes.NewReader([]byte(body)))
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", fakeAuthB64))
-	return req
-}
-
 func TestCreateBadRequestJson(t *testing.T) {
 	postBody := `foo`
 
@@ -25,11 +17,11 @@ func TestCreateBadRequestJson(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	server, client := mockShotgun(200, `foo`)
+	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	Router().ServeHTTP(w, req)
+	context.Set(req, "sgConn", *client)
+	router(config).ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -40,11 +32,11 @@ func TestCreateSimple(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	server, client := mockShotgun(200, `{"results":{"id":75,"name":"My Project","type":"Project"}}`)
+	server, client, config := mockShotgun(200, `{"results":{"id":75,"name":"My Project","type":"Project"}}`)
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	Router().ServeHTTP(w, req)
+	context.Set(req, "sgConn", *client)
+	router(config).ServeHTTP(w, req)
 	assert.Equal(t, http.StatusCreated, w.Code)
 
 	type Entity struct {
@@ -61,9 +53,7 @@ func TestCreateSimple(t *testing.T) {
 
 	var jsonResp Entity
 	err := json.Unmarshal(w.Body.Bytes(), &jsonResp)
-	if err != nil {
-		t.Errorf("Issue Unmarshaling Response")
-	}
+	assert.Nil(t, err)
 
 	assert.Equal(t, expectedResponse, jsonResp)
 }
@@ -77,12 +67,12 @@ func TestCreateConflict(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	server, client := mockShotgun(200,
+	server, client, config := mockShotgun(200,
 		`{"exception":true,"message":"API create() CRUD ERROR #61: Create failed for [Project]. The value for the Project Name field is required to be unique. <br>","error_code":104}`)
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	Router().ServeHTTP(w, req)
+	context.Set(req, "sgConn", *client)
+	router(config).ServeHTTP(w, req)
 	assert.Equal(t, http.StatusConflict, w.Code)
 }
 
@@ -93,12 +83,12 @@ func TestCreateBadResponseJson(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	server, client := mockShotgun(200, `foo`)
+	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	Router().ServeHTTP(w, req)
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	context.Set(req, "sgConn", *client)
+	router(config).ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadGateway, w.Code)
 }
 
 func TestCreateShotgunError(t *testing.T) {
@@ -108,11 +98,11 @@ func TestCreateShotgunError(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	server, client := mockShotgun(200,
+	server, client, config := mockShotgun(200,
 		`{"exception":true,"message":"API create() CRUD ERROR Some other error","error_code":104}`)
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	Router().ServeHTTP(w, req)
+	context.Set(req, "sgConn", *client)
+	router(config).ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
