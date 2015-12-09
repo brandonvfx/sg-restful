@@ -76,7 +76,11 @@ func main() {
 		config := newClientConfig(Version, c.String("shotgun-host"))
 
 		r := router(config)
-		corsMiddleware := cors.Default()
+		corsMiddleware := cors.New(cors.Options{
+			AllowedOrigins: []string{"*"},
+			AllowCredentials: true,
+			AllowedHeaders: []string{"Authorization"},
+		})
 
 		n := negroni.Classic()
 		n.Use(negronilogrus.NewMiddleware())
