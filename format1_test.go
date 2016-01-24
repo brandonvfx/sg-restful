@@ -14,9 +14,9 @@ import (
 func TestMain(m *testing.M) {
 	//f := SetupLog()
 	log.Info("TestMain setup")
-	manager := GetQPManager()
+
 	res := m.Run()
-	f.Close()
+	//f.Close()
 	os.Exit(res)
 }
 
@@ -43,6 +43,7 @@ func SetupLog() *os.File {
 // Make sure that VariableThatShouldStartAtFive is set to five
 // before each test
 func (suite *Format1TestSuite) SetupSuite() {
+	manager := GetQPManager()
 	log.Info(" -- Format1 Test Suite --\n")
 	log.Debug("Format1TestSuite.SetupSuite() - setting active parsers to format1")
 	manager.SetActiveParsers("format1")
@@ -67,27 +68,45 @@ func (suite *Format1TestSuite) TestActiveParsers() {
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementRegExpError() {
-	_, err := parseQuery("()")
+	testString := "()"
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(false, tf, "Should not be able to parse string")
+
+	_, err := f.ParseString(testString)
 
 	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
-		Message:    "No QueryFormats can parse input",
+		Message:    "Invalid query format",
 	}
 	suite.Equal(expectedError, err, "Should be formating error")
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementFilterFormatError() {
-	_, err := parseQuery("and(foo, bar)")
+	testString := "and(foo, bar)"
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(false, tf, "Should not be able to parse string")
+
+	_, err := f.ParseString(testString)
 
 	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
-		Message:    "No QueryFormats can parse input",
+		Message:    "Invalid query filter format",
 	}
 	suite.Equal(expectedError, err, "Should be formating error")
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementJsonError() {
-	_, err := parseQuery("and([foo, bar,])")
+	testString := "and([foo, bar,])"
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should not be able to parse string")
+
+	_, err := f.ParseString(testString)
 
 	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
@@ -97,17 +116,29 @@ func (suite *Format1TestSuite) TestParseQueryAndOrStatementJsonError() {
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementNotAQuery() {
-	_, err := parseQuery("andwell_this_is_bad")
+	testString := "andwell_this_is_bad"
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(false, tf, "Should not be able to parse string")
+
+	_, err := f.ParseString(testString)
 
 	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
-		Message:    "No QueryFormats can parse input",
+		Message:    "Invalid query format",
 	}
 	suite.Equal(expectedError, err, "Should be formating error")
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementSliceOfFilters() {
-	rf, err := parseQuery(`and([["name", "is", "blorg"]])`)
+	testString := `and([["name", "is", "blorg"]])`
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should not be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.AddCondition(newQueryCondition("name", "is", "blorg"))
@@ -117,8 +148,13 @@ func (suite *Format1TestSuite) TestParseQueryAndOrStatementSliceOfFilters() {
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementBasicAnd() {
+	testString := `and(["name", "is", "blorg"])`
+	f := &Format1{}
 
-	rf, err := parseQuery(`and(["name", "is", "blorg"])`)
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should not be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.AddCondition(newQueryCondition("name", "is", "blorg"))
@@ -128,7 +164,13 @@ func (suite *Format1TestSuite) TestParseQueryAndOrStatementBasicAnd() {
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementBasicAndUpper() {
-	rf, err := parseQuery(`AND(["name", "is", "blorg"])`)
+	testString := `AND(["name", "is", "blorg"])`
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.AddCondition(newQueryCondition("name", "is", "blorg"))
@@ -138,7 +180,13 @@ func (suite *Format1TestSuite) TestParseQueryAndOrStatementBasicAndUpper() {
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementBasicOr() {
-	rf, err := parseQuery(`or(["name", "is", "blorg"])`)
+	testString := `or(["name", "is", "blorg"])`
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.LogicalOperator = "or"
@@ -149,7 +197,13 @@ func (suite *Format1TestSuite) TestParseQueryAndOrStatementBasicOr() {
 }
 
 func (suite *Format1TestSuite) TestParseQueryAndOrStatementBasicOrUpper() {
-	rf, err := parseQuery(`OR(["name", "is", "blorg"])`)
+	testString := `OR(["name", "is", "blorg"])`
+	f := &Format1{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.LogicalOperator = "or"

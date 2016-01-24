@@ -33,7 +33,12 @@ func TestFormat2TestSuite(t *testing.T) {
 }
 
 func (suite *Format2TestSuite) TestParseQueryHashJsonError() {
-	_, err := parseQuery("{foo}")
+	f := &Format2{}
+	testString := "{foo}"
+	tf := f.CanParseString(testString)
+	suite.Equal(false, tf, "Should not be able to parse string")
+
+	_, err := f.ParseString(testString)
 
 	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
@@ -43,7 +48,12 @@ func (suite *Format2TestSuite) TestParseQueryHashJsonError() {
 }
 
 func (suite *Format2TestSuite) TestParseQueryHashConditionsOnly() {
-	_, err := parseQuery(`{"conditions": [["name", "is", "blorg"]]}`)
+	f := &Format2{}
+	teststring := `{"conditions": [["name", "is", "blorg"]]}`
+	tf := f.CanParseString(teststring)
+	suite.Equal(tf, false, "Should not be able to parse string")
+
+	_, err := f.ParseString(teststring)
 
 	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
@@ -53,7 +63,12 @@ func (suite *Format2TestSuite) TestParseQueryHashConditionsOnly() {
 }
 
 func (suite *Format2TestSuite) TestParseQueryHashLogicalOpOnly() {
-	_, err := parseQuery(`{"logical_operator": "and"}`)
+	f := &Format2{}
+	testString := `{"logical_operator": "and"}`
+	tf := f.CanParseString(testString)
+	suite.Equal(false, tf, "Should not be able to parse string")
+
+	_, err := f.ParseString(testString)
 
 	expectedError := queryParseError{
 		StatusCode: http.StatusBadRequest,
@@ -62,18 +77,13 @@ func (suite *Format2TestSuite) TestParseQueryHashLogicalOpOnly() {
 	suite.Equal(expectedError, err, "Should a json error")
 }
 
-func (suite *Format2TestSuite) TestParseQueryArrayJsonError() {
-	_, err := parseQuery("[[foo]]")
-
-	expectedError := queryParseError{
-		StatusCode: http.StatusBadRequest,
-		Message:    "invalid character 'o' in literal false (expecting 'a')",
-	}
-	suite.Equal(expectedError, err, "Should a json error")
-}
-
 func (suite *Format2TestSuite) TestParseQueryHashStatementBasicAnd() {
-	rf, err := parseQuery(`{"logical_operator": "and", "conditions": [["name", "is", "blorg"]]}`)
+	f := &Format2{}
+	testString := `{"logical_operator": "and", "conditions": [["name", "is", "blorg"]]}`
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.LogicalOperator = "and"
@@ -84,7 +94,12 @@ func (suite *Format2TestSuite) TestParseQueryHashStatementBasicAnd() {
 }
 
 func (suite *Format2TestSuite) TestParseQueryHashStatementBasicOr() {
-	rf, err := parseQuery(`{"logical_operator": "or", "conditions": [["name", "is", "blorg"]]}`)
+	f := &Format2{}
+	testString := `{"logical_operator": "or", "conditions": [["name", "is", "blorg"]]}`
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.LogicalOperator = "or"
@@ -95,7 +110,13 @@ func (suite *Format2TestSuite) TestParseQueryHashStatementBasicOr() {
 }
 
 func (suite *Format2TestSuite) TestParseQueryHashStatementAnd() {
-	rf, err := parseQuery(`{"logical_operator": "and", "conditions": [["name", "is", "blorg"], ["sg_status", "in", ["Active", "Bidding"]]]}`)
+	testString := `{"logical_operator": "and", "conditions": [["name", "is", "blorg"], ["sg_status", "in", ["Active", "Bidding"]]]}`
+	f := &Format2{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.LogicalOperator = "and"
@@ -107,7 +128,13 @@ func (suite *Format2TestSuite) TestParseQueryHashStatementAnd() {
 }
 
 func (suite *Format2TestSuite) TestParseQueryHashStatementOr() {
-	rf, err := parseQuery(`{"logical_operator": "or", "conditions": [["name", "is", "blorg"]]}`)
+	testString := `{"logical_operator": "or", "conditions": [["name", "is", "blorg"]]}`
+	f := &Format2{}
+
+	tf := f.CanParseString(testString)
+	suite.Equal(true, tf, "Should be able to parse string")
+
+	rf, err := f.ParseString(testString)
 
 	rfExpected := newReadFilters()
 	rfExpected.LogicalOperator = "or"
