@@ -12,7 +12,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	f := SetupLog()
+	//f := SetupLog()
 	log.Info("TestMain setup")
 	manager := GetQPManager()
 	res := m.Run()
