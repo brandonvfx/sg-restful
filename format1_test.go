@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
@@ -11,33 +9,11 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func TestMain(m *testing.M) {
-	//f := SetupLog()
-	log.Info("TestMain setup")
-
-	res := m.Run()
-	//f.Close()
-	os.Exit(res)
-}
-
 // Define the suite, and absorb the built-in basic suite
 // functionality from testify - including a T() method which
 // returns the current testing context
 type Format1TestSuite struct {
 	suite.Suite
-}
-
-func SetupLog() *os.File {
-	f, err := os.OpenFile("sg-restful-test.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
-	if err != nil {
-		panic(fmt.Sprintf("error opening file: %v", err))
-	}
-
-	log.SetLevel(log.DebugLevel)
-	log.SetOutput(f)
-	log.SetFormatter(&log.TextFormatter{})
-	return f
-
 }
 
 // Make sure that VariableThatShouldStartAtFive is set to five
