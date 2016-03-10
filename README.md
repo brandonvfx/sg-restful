@@ -38,7 +38,7 @@ Basic-user <base64 user_name:user_password>
 
 - page (int): Page of results to return.
 - limit (int): Number of results per page to return
-- fields (comma seperated listed of string): The fields/columns to return.
+- fields (comma separated listed of string): The fields/columns to return.
 - q (string): The query to execute. Syntax below.
 
 
@@ -72,4 +72,24 @@ This format the logical_operator is always assumed to be "and".
 
 ```
 q=[[<name>, <relation>, <values>],...]
+```
+
+## Testing
+
+### Tags
+
+In order to facilitate testing, sg-restful makes use of a mocks from the testify package. Because of this, tests should be run using `go test -tags test`.
+
+### Writing Out a Log File
+
+Optionally, you can write out a log for a test run by setting `SG-RESTFUL_LOG_TO_FILE="yes"` or `SG-RESTFUL_LOG_TO_FILE=true`. This will result in a log file getting generated with with the following name:
+
+    sg-restful-test.<time>.log
+
+Where <time> is the current time using the following format string `"20060102150405"`
+
+You can either persist this value in your shell or prefix your go test command like so:
+
+```
+env SG-RESTFUL_LOG_TO_FILE="yes" go test -tag test 
 ```

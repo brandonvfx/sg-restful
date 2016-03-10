@@ -7,11 +7,38 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/gorilla/context"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestReadFindOneSimple(t *testing.T) {
+// Define the suite, and absorb the built-in basic suite
+// functionality from testify - including a T() method which
+// returns the current testing context
+type EntityGetTestSuite struct {
+	suite.Suite
+}
+
+// Make sure that VariableThatShouldStartAtFive is set to five
+// before each test
+func (suite *EntityGetTestSuite) SetupSuite() {
+	manager := GetQPManager()
+	log.Info(" -- EntityGet Test Suite --\n")
+	log.Debug("EntityGetTestSuite.SetupSuite() - setting active parsers to format1, format2, format3")
+	manager.SetActiveParsers("format1", "format2", "format3")
+}
+
+// In order for 'go test' to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run
+func TestEntityGetTestSuite(t *testing.T) {
+	//ts := new(Format1TestSuite)
+	log.Debug("EntityGetTestSuite - Running test suite")
+	suite.Run(t, new(EntityGetTestSuite))
+	log.Debug("EntityGetTestSuite - Finished test suite")
+}
+
+func (suite *EntityGetTestSuite) TestReadFindOneSimple() {
 	req := getRequest("/Project/65")
 	w := httptest.NewRecorder()
 
@@ -22,7 +49,7 @@ func TestReadFindOneSimple(t *testing.T) {
 
 	context.Set(req, "sgConn", *client)
 	router(config).ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
+	suite.Equal(http.StatusOK, w.Code)
 
 	type Entity struct {
 		Type string `json:"type"`
@@ -32,16 +59,16 @@ func TestReadFindOneSimple(t *testing.T) {
 	expected := []byte(`{"type":"Project","id":65}`)
 	var jsonExpected Entity
 	err := json.Unmarshal(expected, &jsonExpected)
-	assert.Nil(t, err)
+	suite.Nil(err)
 
 	var jsonResp Entity
 	err = json.Unmarshal(w.Body.Bytes(), &jsonResp)
-	assert.Nil(t, err)
+	suite.Nil(err)
 
-	assert.Equal(t, jsonExpected, jsonResp)
+	suite.Equal(jsonExpected, jsonResp)
 }
 
-func TestReadFindOneWithFields(t *testing.T) {
+func (suite *EntityGetTestSuite) TestReadFindOneWithFields() {
 	req := getRequest("/Project/65?fields=name,sg_status")
 	w := httptest.NewRecorder()
 
@@ -52,7 +79,7 @@ func TestReadFindOneWithFields(t *testing.T) {
 
 	context.Set(req, "sgConn", *client)
 	router(config).ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
+	suite.Equal(http.StatusOK, w.Code)
 
 	type Entity struct {
 		Type   string `json:"type"`
@@ -64,16 +91,16 @@ func TestReadFindOneWithFields(t *testing.T) {
 	expected := []byte(`{"id":65,"name":"Big Buck Bunny","sg_status":"Active","type":"Project"}`)
 	var jsonExpected Entity
 	err := json.Unmarshal(expected, &jsonExpected)
-	assert.Nil(t, err)
+	suite.Nil(err)
 
 	var jsonResp Entity
 	err = json.Unmarshal(w.Body.Bytes(), &jsonResp)
-	assert.Nil(t, err)
+	suite.Nil(err)
 
-	assert.Equal(t, jsonExpected, jsonResp)
+	suite.Equal(jsonExpected, jsonResp)
 }
 
-func TestReadFindOneNoneIntId(t *testing.T) {
+func (suite *EntityGetTestSuite) TestReadFindOneNoneIntId() {
 	req := getRequest("/Project/foo")
 	w := httptest.NewRecorder()
 
@@ -85,10 +112,10 @@ func TestReadFindOneNoneIntId(t *testing.T) {
 	context.Set(req, "sgConn", *client)
 	router(config).ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	suite.Equal(http.StatusNotFound, w.Code)
 }
 
-func TestGetNotFound(t *testing.T) {
+func (suite *EntityGetTestSuite) TestGetNotFound() {
 	req := getRequest("/Project/64")
 	w := httptest.NewRecorder()
 
@@ -97,10 +124,10 @@ func TestGetNotFound(t *testing.T) {
 
 	context.Set(req, "sgConn", *client)
 	router(config).ServeHTTP(w, req)
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	suite.Equal(http.StatusNotFound, w.Code)
 }
 
-func TestReadNoShotgunClient(t *testing.T) {
+func (suite *EntityGetTestSuite) TestReadNoShotgunClient() {
 	req := getRequest("/Project")
 	w := httptest.NewRecorder()
 
@@ -108,10 +135,10 @@ func TestReadNoShotgunClient(t *testing.T) {
 	defer server.Close()
 
 	router(config).ServeHTTP(w, req)
-	assert.Equal(t, http.StatusBadGateway, w.Code)
+	suite.Equal(http.StatusBadGateway, w.Code)
 }
 
-func TestGetBadResponseJson(t *testing.T) {
+func (suite *EntityGetTestSuite) TestGetBadResponseJson() {
 	req := getRequest("/Project/64")
 	w := httptest.NewRecorder()
 
@@ -120,5 +147,5 @@ func TestGetBadResponseJson(t *testing.T) {
 
 	context.Set(req, "sgConn", *client)
 	router(config).ServeHTTP(w, req)
-	assert.Equal(t, http.StatusBadGateway, w.Code)
+	suite.Equal(http.StatusBadGateway, w.Code)
 }

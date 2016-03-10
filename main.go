@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -47,6 +48,17 @@ func router(config clientConfig) *mux.Router {
 }
 
 func main() {
+	f, err := os.OpenFile("sg-restful.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		fmt.Printf("error opening file: %v", err)
+	}
+
+	// don't forget to close it
+	defer f.Close()
+
+	log.SetLevel(log.DebugLevel)
+	log.SetOutput(f)
+	log.SetFormatter(&log.TextFormatter{})
 
 	app := cli.NewApp()
 	app.Name = "sg-restful"
@@ -77,9 +89,9 @@ func main() {
 
 		r := router(config)
 		corsMiddleware := cors.New(cors.Options{
-			AllowedOrigins: []string{"*"},
+			AllowedOrigins:   []string{"*"},
 			AllowCredentials: true,
-			AllowedHeaders: []string{"Authorization"},
+			AllowedHeaders:   []string{"Authorization"},
 		})
 
 		n := negroni.Classic()
