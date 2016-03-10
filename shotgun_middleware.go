@@ -4,10 +4,10 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/context"
 )
 
@@ -54,10 +54,9 @@ func ShotgunAuthMiddleware(config clientConfig) func(rw http.ResponseWriter, r *
 
 		name := pair[0]
 		key := pair[1]
-		log.Debug("Name:", name)
 
 		hasher := sha1.New()
-		hash := hex.EncodeToString(hasher.Sum([]byte(config.shotgunHost + name + key)))
+		hash := hex.EncodeToString(hasher.Sum([]byte(fmt.Sprintf("%s%v%s%s", config.shotgunHost, isUser, name, key))))
 
 		conn, ok := connectionCache[hash]
 		if !ok {
@@ -69,7 +68,7 @@ func ShotgunAuthMiddleware(config clientConfig) func(rw http.ResponseWriter, r *
 
 		}
 		connectionCache[hash] = conn
-		log.Debugf("Connection: %v", conn)
+		conn.Log()
 		context.Set(req, "sgConn", conn)
 
 		next(rw, req)

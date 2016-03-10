@@ -161,7 +161,7 @@ func entityGetAllHandler(config clientConfig) func(rw http.ResponseWriter, req *
 				}
 				query.Filters = queryFilters
 
-				log.Debugf("Query: %v", query)
+				log.Debugf("Query: %s", StructToString(query))
 				jsonQuery, err := json.Marshal(query)
 				if err != nil {
 					log.Error(err)
@@ -173,7 +173,7 @@ func entityGetAllHandler(config clientConfig) func(rw http.ResponseWriter, req *
 
 		}
 
-		log.Debugf("Query: %v", query)
+		log.Debugf("Query: %v", StructToString(query))
 
 		sgConn, ok := context.GetOk(req, "sgConn")
 		if !ok {
@@ -208,6 +208,7 @@ func entityGetAllHandler(config clientConfig) func(rw http.ResponseWriter, req *
 		if readResp.Exception {
 			rw.WriteHeader(http.StatusInternalServerError)
 			rw.Write([]byte(readResp.Message))
+			return
 		}
 
 		if len(readResp.Results.Entities) == 0 {

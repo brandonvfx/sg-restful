@@ -29,9 +29,9 @@ Basic <base64 script_name:script_key>
 ```
 
 User `Authorization` header:
-( I don't suggest using this unless you have an internal Shotgun sever. )
+( This is now safer to use than it was but I still suggest using https or only with internal servers )
 ```
-Basic-user <base64 user_name:user_password>
+Basic-User <base64 user_name:user_password>
 ```
 
 ## Query String
@@ -91,5 +91,5 @@ Where <time> is the current time using the following format string `"20060102150
 You can either persist this value in your shell or prefix your go test command like so:
 
 ```
-env SG-RESTFUL_LOG_TO_FILE="yes" go test -tag test 
+env SG-RESTFUL_LOG_TO_FILE="yes" go test -tag test
 ```

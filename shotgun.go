@@ -37,6 +37,14 @@ func getFullURL(host string) string {
 	return fullURL.String()
 }
 
+func (sg *Shotgun) Log() {
+	log.WithFields(logrus.Fields{
+		"host":   sg.ServerURL,
+		"script": sg.ScriptName,
+		"user":   sg.UserLogin,
+	}).Debug("Connection")
+}
+
 func NewShotgun(host, scriptName, scriptKey string) Shotgun {
 	return Shotgun{
 		ServerURL:  getFullURL(host),
@@ -79,11 +87,11 @@ func (sg *Shotgun) Request(method_name string, query interface{}) (*http.Respons
 	requestData["method_name"] = method_name
 	requestData["params"] = []interface{}{sg.Creds(), query}
 
-	// requestData["params"][0] = sg.creds()
-	// requestData["params"][1] =
-
 	bodyJson, err := json.Marshal(requestData)
-	log.Debug("Json Request:", string(bodyJson))
+	log.WithFields(logrus.Fields{
+		"method": method_name,
+		"query":  StructToString(query),
+	}).Debug("Request")
 	if err != nil {
 		log.Error("Shotugn.Request Marshal Error: ", err)
 		return &http.Response{}, err
