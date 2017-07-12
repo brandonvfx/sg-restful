@@ -1,50 +1,73 @@
 {
 	"ImportPath": "github.com/brandonvfx/sg-restful",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.7.3-15-g092eda2",
-			"Rev": "092eda23b5d2ccf95fe7dfc70354493eb273487a"
-		},
-		{
-			"ImportPath": "github.com/codegangsta/cli",
-			"Comment": "1.2.0-107-g942282e",
-			"Rev": "942282e931e8286aa802a30b01fa7e16befb50f3"
-		},
-		{
-			"ImportPath": "github.com/codegangsta/negroni",
-			"Comment": "v0.1-70-gc7477ad",
-			"Rev": "c7477ad8e330bef55bf1ebe300cf8aa67c492d1b"
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Comment": "v1.1.0-5-g9fadf46",
+			"Rev": "9fadf46324c4cfc36cc82310ca92ded38af91249"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
-			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+			"Comment": "v1.1-7-g08b5f42",
+			"Rev": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+			"Comment": "v1.4.0-13-gac112f7",
+			"Rev": "ac112f7d75a0714af1bd86ab17749b31f7809640"
 		},
 		{
 			"ImportPath": "github.com/meatballhat/negroni-logrus",
-			"Rev": "eed9b3e979c39c3cd0a639b6c3a58d604f262b96"
+			"Rev": "259659cbe5df2a5732a3c677d040058215be1ee7"
+		},
+		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Comment": "v1.0.0",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
 		},
 		{
 			"ImportPath": "github.com/rs/cors",
-			"Rev": "ceb1fbf238d7711a11a86a2622d0b85305348aeb"
+			"Comment": "v.1.1",
+			"Rev": "8dd4211afb5d08dbb39a533b9bb9e4b486351df6"
 		},
 		{
-			"ImportPath": "github.com/rs/xhandler",
-			"Rev": "768e938dd1b2901a776cf66e27a9737d64f9e15f"
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v1.0.1",
+			"Rev": "7f976d3a76720c4c27af2ba716b85d2e0a7e38b1"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Comment": "v1.0",
-			"Rev": "232e8563676cd15c3a36ba5e675ad4312ac4cb11"
+			"Comment": "v1.1.4-66-gf6abca5",
+			"Rev": "f6abca593680b2315d2075e0f5e2a9751e3f431a"
 		},
 		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
+			"ImportPath": "github.com/stretchr/testify/require",
+			"Comment": "v1.1.4-66-gf6abca5",
+			"Rev": "f6abca593680b2315d2075e0f5e2a9751e3f431a"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/suite",
+			"Comment": "v1.1.4-66-gf6abca5",
+			"Rev": "f6abca593680b2315d2075e0f5e2a9751e3f431a"
+		},
+		{
+			"ImportPath": "github.com/urfave/cli",
+			"Comment": "v1.19.1-54-g4b90d79",
+			"Rev": "4b90d79a682b4bf685762c7452db20f2a676ecb2"
+		},
+		{
+			"ImportPath": "github.com/urfave/negroni",
+			"Comment": "v0.2.0-123-gb52430c",
+			"Rev": "b52430c192a156df9ce64f249ccb551f0ff3467f"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "abf9c25f54453410d0c6668e519582a9e1115027"
 		}
 	]
 }

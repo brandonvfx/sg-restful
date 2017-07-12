@@ -9,9 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 // Response Structs
@@ -175,8 +174,9 @@ func entityGetAllHandler(config clientConfig) func(rw http.ResponseWriter, req *
 
 		log.Debugf("Query: %v", StructToString(query))
 
-		sgConn, ok := context.GetOk(req, "sgConn")
-		if !ok {
+		ctx := req.Context()
+		sgConn := ctx.Value("sgConn")
+		if sgConn == nil {
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}

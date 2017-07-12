@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/codegangsta/cli"
-	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/meatballhat/negroni-logrus"
 	"github.com/rs/cors"
+	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
+	"github.com/urfave/negroni"
 )
 
 var Version string
@@ -57,7 +57,7 @@ func main() {
 	defer f.Close()
 
 	log.SetLevel(log.DebugLevel)
-	log.SetOutput(f)
+	log.SetOutput(os.Stdout)
 	log.SetFormatter(&log.TextFormatter{})
 
 	app := cli.NewApp()

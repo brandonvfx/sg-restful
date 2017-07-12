@@ -8,9 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 type createResponse struct {
@@ -66,8 +65,9 @@ func entityCreateHandler(config clientConfig) func(rw http.ResponseWriter, req *
 			"fields":        fields,
 		}
 
-		sgConn, ok := context.GetOk(req, "sgConn")
-		if !ok {
+		ctx := req.Context()
+		sgConn := ctx.Value("sgConn")
+		if sgConn == nil {
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}

@@ -8,9 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 type deleteResponse struct {
@@ -51,8 +50,9 @@ func entityDeleteHandler(config clientConfig) func(rw http.ResponseWriter, req *
 			"id":   entityID,
 		}
 
-		sgConn, ok := context.GetOk(req, "sgConn")
-		if !ok {
+		ctx := req.Context()
+		sgConn := ctx.Value("sgConn")
+		if sgConn == nil {
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}

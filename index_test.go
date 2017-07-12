@@ -1,11 +1,10 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/gorilla/context"
 )
 
 func TestIndexSuccess(t *testing.T) {
@@ -17,8 +16,9 @@ func TestIndexSuccess(t *testing.T) {
 
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	if w.Code != http.StatusOK {
 		t.Errorf("Home page didn't return %v", http.StatusOK)
 	}
@@ -31,8 +31,9 @@ func TestIndexShotugnMissing(t *testing.T) {
 	server, client, config := mockShotgun(503, "")
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	if w.Code != http.StatusBadGateway {
 		t.Errorf("Home page didn't return %v", http.StatusBadGateway)
 	}
@@ -45,8 +46,9 @@ func TestIndexEmptyResponse(t *testing.T) {
 	server, client, config := mockShotgun(200, "")
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	if w.Code != http.StatusInternalServerError {
 		t.Errorf("Home page didn't return %v", http.StatusInternalServerError)
 	}
@@ -59,8 +61,9 @@ func TestIndexEmptyNonJsonResponse(t *testing.T) {
 	server, client, config := mockShotgun(200, "200 Not Ok - Because Shotgun.")
 	defer server.Close()
 
-	context.Set(req, "sg_conn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	if w.Code != http.StatusInternalServerError {
 		t.Errorf("Home page didn't return %v", http.StatusInternalServerError)
 	}
@@ -83,7 +86,8 @@ func TestIndexBadShotgunHost(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
 
-	context.Set(req, "sg_conn", Shotgun{
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sg_conn", Shotgun{
 		ServerURL:  "http://localhost:102782/",
 		ScriptName: "fake-script",
 		ScriptKey:  "fake-key",
@@ -91,7 +95,7 @@ func TestIndexBadShotgunHost(t *testing.T) {
 	})
 	config := newClientConfig("0.0.0-test.1", "http://localhost:102782/")
 
-	router(config).ServeHTTP(w, req)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	if w.Code != http.StatusInternalServerError {
 		t.Errorf("Home page didn't return %v", http.StatusInternalServerError)
 	}

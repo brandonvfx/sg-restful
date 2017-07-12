@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 const fakeAuthB64 = "ZmFrZS1zY3JpcHQ6ZmFrZS1rZXk="

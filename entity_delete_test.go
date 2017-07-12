@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/context"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,8 +17,9 @@ func TestDeleteNoId(t *testing.T) {
 	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
@@ -34,8 +35,9 @@ func TestDeletePermissionsIssue(t *testing.T) {
 			`[\"Template Project\"]}","error_code":104}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusForbidden, w.Code)
 }
 
@@ -48,8 +50,9 @@ func TestDeleteError(t *testing.T) {
 		`{"exception":true,"message":"Somer Error message","error_code":104}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -61,8 +64,9 @@ func TestDeleteSuccess(t *testing.T) {
 	server, client, config := mockShotgun(200, `{"results": true}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -75,8 +79,9 @@ func TestDeleteMissing(t *testing.T) {
 		`{"exception":true,"message":"API delete() CRUD ERROR #3: Entity of type [Shot] with id=1000000 does not exist.","error_code":104}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
@@ -88,7 +93,8 @@ func TestDeleteBadJsonResponse(t *testing.T) {
 	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusBadGateway, w.Code)
 }

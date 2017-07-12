@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/context"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,8 +20,9 @@ func TestUpdateBadRequestJson(t *testing.T) {
 	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -34,8 +35,9 @@ func TestUpdateNoId(t *testing.T) {
 	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
@@ -50,8 +52,9 @@ func TestUpdateSimple(t *testing.T) {
 	server, client, config := mockShotgun(200, `{"results":{"id":75,"name":"My Project 2","type":"Project"}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	type Entity struct {
@@ -84,8 +87,9 @@ func TestUpdateConflict(t *testing.T) {
 		`{"exception":true,"message":"API update() CRUD ERROR #51: Update failed for [Shot.code]. The value for the Shot Code field is required to be unique. <br> ","error_code":104}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusConflict, w.Code)
 }
 
@@ -99,7 +103,8 @@ func TestUpdateBadResponseJson(t *testing.T) {
 	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusBadGateway, w.Code)
 }

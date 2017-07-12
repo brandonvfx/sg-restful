@@ -30,3 +30,6 @@ gin-bin
 sg-restful
 
 Godeps/_workspace
+tasks.json
+*.log
+vendor

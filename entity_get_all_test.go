@@ -1,14 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
-	"github.com/gorilla/context"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -45,8 +45,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllSimple() {
 		`{"results":{"entities":[{"type":"Project","id":63},{"type":"Project","id":65}],"paging_info":{"current_page":1,"page_count":1,"entity_count":4,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusOK, w.Code)
 
@@ -76,8 +77,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllWithFields() {
 		`{"results":{"entities":[{"id":63,"name":"Template Project","sg_status":null,"type":"Project"},{"id":65,"name":"Big Buck Bunny","sg_status":"Active","type":"Project"}],"paging_info":{"current_page":1,"page_count":1,"entity_count":4,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusOK, w.Code)
 
@@ -109,8 +111,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllPagingLimit1() {
 		`{"results":{"entities":[{"id":63,"name":"Template Project","sg_status":null,"type":"Project"},{"id":65,"name":"Big Buck Bunny","sg_status":"Active","type":"Project"}],"paging_info":{"current_page":1,"page_count":1,"entity_count":4,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusOK, w.Code)
 
@@ -138,8 +141,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllBadPageValue() {
 		`{"exception":true,"message":"API read() invalid/missing integer 'paging' 'entities_per_page':\n{\"current_page\"=>\"foo\", \"entities_per_page\"=>1}","error_code":103}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusBadRequest, w.Code)
 
@@ -153,8 +157,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllBadLimitValue() {
 		`{"exception":true,"message":"API read() invalid/missing integer 'paging' 'entities_per_page':\n{\"current_page\"=>2, \"entities_per_page\"=>\"foo\"}","error_code":103}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusBadRequest, w.Code)
 }
@@ -168,8 +173,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllNoResults() {
 		`{"results":{"entities":[],"paging_info":{"current_page":0,"page_count":0,"entity_count":0,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusNoContent, w.Code)
 }
@@ -182,8 +188,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllMapQuery() {
 		`{"results":{"entities":[{"id":65, "type":"Project"}],"paging_info":{"current_page":1,"page_count":1,"entity_count":1,"entities_per_page":1}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusOK, w.Code)
 
@@ -213,8 +220,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllArrayQuery() {
 		`{"results":{"entities":[{"id":65, "type":"Project"}],"paging_info":{"current_page":1,"page_count":1,"entity_count":1,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusOK, w.Code)
 
@@ -244,8 +252,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllAndStringQuery() {
 		`{"results":{"entities":[{"id":65, "type":"Project"}],"paging_info":{"current_page":1,"page_count":1,"entity_count":1,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusOK, w.Code)
 
@@ -275,8 +284,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllOrStringQuery() {
 		`{"results":{"entities":[{"type":"Project","id":65},{"type":"Project","id":66},{"type":"Project","id":71}],"paging_info":{"current_page":1,"page_count":1,"entity_count":3,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusOK, w.Code)
 
@@ -306,8 +316,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllBadQuery() {
 		`{"results":{"entities":[{"type":"Project","id":65},{"type":"Project","id":66},{"type":"Project","id":71}],"paging_info":{"current_page":1,"page_count":1,"entity_count":3,"entities_per_page":500}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusBadRequest, w.Code)
 
@@ -333,8 +344,9 @@ func (suite *EntityGetAllTestSuite) TestFindAllBadResponseJson() {
 	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	suite.Equal(http.StatusBadGateway, w.Code)
 }
 

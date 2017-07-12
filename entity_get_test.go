@@ -1,15 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
-	"github.com/gorilla/context"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -47,8 +47,9 @@ func (suite *EntityGetTestSuite) TestReadFindOneSimple() {
 		`{"results":{"entities":[{"type":"Project","id":65}],"paging_info":{"current_page":1,"page_count":1,"entity_count":1,"entities_per_page":1}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	suite.Equal(http.StatusOK, w.Code)
 
 	type Entity struct {
@@ -77,8 +78,9 @@ func (suite *EntityGetTestSuite) TestReadFindOneWithFields() {
 		`{"results":{"entities":[{"id":65,"name":"Big Buck Bunny","sg_status":"Active","type":"Project"}],"paging_info":{"current_page":1,"page_count":1,"entity_count":1,"entities_per_page":1}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	suite.Equal(http.StatusOK, w.Code)
 
 	type Entity struct {
@@ -109,8 +111,9 @@ func (suite *EntityGetTestSuite) TestReadFindOneNoneIntId() {
 		`{"results":{"entities":[{"id":65, "type":"Project"}],"paging_info":{"current_page":1,"page_count":1,"entity_count":1,"entities_per_page":1}}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 
 	suite.Equal(http.StatusNotFound, w.Code)
 }
@@ -122,8 +125,9 @@ func (suite *EntityGetTestSuite) TestGetNotFound() {
 	server, client, config := mockShotgun(200, `{"results":{"entities":[]}}`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	suite.Equal(http.StatusNotFound, w.Code)
 }
 
@@ -145,7 +149,8 @@ func (suite *EntityGetTestSuite) TestGetBadResponseJson() {
 	server, client, config := mockShotgun(200, `foo`)
 	defer server.Close()
 
-	context.Set(req, "sgConn", *client)
-	router(config).ServeHTTP(w, req)
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "sgConn", *client)
+	router(config).ServeHTTP(w, req.WithContext(ctx))
 	suite.Equal(http.StatusBadGateway, w.Code)
 }

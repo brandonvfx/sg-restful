@@ -1,14 +1,13 @@
 package main
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/gorilla/context"
 )
 
 var connectionCache map[string]Shotgun
@@ -69,8 +68,8 @@ func ShotgunAuthMiddleware(config clientConfig) func(rw http.ResponseWriter, r *
 		}
 		connectionCache[hash] = conn
 		conn.Log()
-		context.Set(req, "sgConn", conn)
-
-		next(rw, req)
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "sgConn", conn)
+		next(rw, req.WithContext(ctx))
 	}
 }
