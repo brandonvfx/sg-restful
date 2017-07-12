@@ -1,21 +1,20 @@
 language: go
 go:
-  - 1.7
-  - 1.8
-  - tip
+- 1.7
+- 1.8
+- tip
 script: script/test
 before_deploy:
-  - mkdir release
-  - GOOS=linux GOARCH=amd64 go build -o release/sg-restful-linux-amd64 -x -ldflags "-X main.Version=$TRAVIS_TAG" .
-  - GOOS=darwin GOARCH=amd64 go build -o release/sg-restful-darwin-amd64 -x -ldflags "-X main.Version=$TRAVIS_TAG" .
+- mkdir release
+- GOOS=linux GOARCH=amd64 go build -o release/sg-restful-linux-amd64 -x -ldflags "-X main.Version=$TRAVIS_TAG" .
+- GOOS=darwin GOARCH=amd64 go build -o release/sg-restful-darwin-amd64 -x -ldflags "-X main.Version=$TRAVIS_TAG" .
 deploy:
   provider: releases
   api_key:
-    secure: F6GIfDUtrXkv2m16QoaIn8qPQzpy7tXL/SQUehFzp/AkgzaYyS5YCUq1Pju+J4HVyr8V7hMy9kzSDiuTcxhWltYoitDnWp+2mZY5V5ow/vTxheegrHwE+gNnwGJg5rDifnEBIL1yL0V2Xxw/7yLAo7izGh0ZWkXaGxqYuQ6RYeNLwGT/qy2CKwtu5ohor3bc5L4dHyHfl57t69K2r6yq1qf6QcMBpbPewXi7oSv1WYFmG53h+vBfNgvjrFJoK6G0xYwpOnt0UxZOCoLUdYyGhCfAxMFFTTN9wrt3TMxk9BVMnYhSMJ5Gyx2kX7M5x05FZuZ5EKcCHbfREy7A88OZ7PBI6mQgwYfvnnQXZV+XPLNRtVp1y2xfhCVmEvbeLU4XlJlbtR1Zc1gmhX1aLwVyrQv4gBWYoevwbQxWWPK1j8clJWS/BxrMfOOynPOyOrMCvFmvIQEgBPbPS9XEc39C7siStQujGEUIzWF4gIeBgFK+VDis4PmUP5tJV9kTYBLoVSpnq82ZlnemBwron+Cy9GyBYd3Z6zt3quc908U5aeWltFoBPi2xJejQHAuKFxQHnULPt9ngZBsBHzwSlvWVsNNjRZKh0j8rtbIvSLKHl/LJjHTse24f3EuJgeIbMnFZhnooyM0ACwgbBtd5bVNjzCuNWt1UBmiK3FBiOfdlqTw=
-  file:
+    secure: H5ggEfYqvTkLvdBox9oBq1+okz9O0U+eawsgEmP9MKGwauYMGnKzVWClH0ck/6BI/sbsZzAePF1ebKyLgrvDReZnB682iYcv7yjtJoPcv2KIUZiCf+4CTLrDHk6DlDAC8O5Jdkbj9roLL2stRj+MVgtTVrZ2Dd5hYMfLm5nhud98qORS2LGm/FsgfvvOwI7AZMQtdJSiw+N4X2Medjktb300afftKkreuY/MWcP9FaZvnZrxK2WL8rPVbNhLfOHk2NCewktVud+jsVWbUJ3X/3gA3mLhjo9q9nP1M8OO36IjzuRC12VdrwdL2H0dV8Zn+yEU9enF0iMahtWPLBTOicSOPRmDzTnTDtLDBUpVZwdNPLEOuiRbt8E48BmwBOXwtfjLIatK0O0DGqm7XYLVG3XQ3YMlJAW/OFV4V4Tkg2aFcslJ9wXMECzbdNRQuD0kSAGaFru/71fqioqpT5tsY4fKEOpSU/9F+Dj4+AyTwIT04ZgfvpavATh0eRNwrctathyPcfyI9cVn2aTUk65892u5Fe/xqhxCAZmm6rNfWrw1B2fbEntJhp6qQrG/zsEzb5VrIlK1ZZyaLw5NVcbhmlFnEeju4mfG4tLsZjZwYsLOzGf6dHZUK40J75RJaA8qSXvWFK/vkD1uI7rAEAGMKOC5b8CI0ZV0Z3h5oIHV6TI=
+  file: 
     - release/sg-restful-linux-amd64
     - release/sg-restful-darwin-amd64
-  skip_cleanup: true
   on:
     repo: brandonvfx/sg-restful
     tags: true
