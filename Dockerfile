@@ -11,6 +11,7 @@ ENV CGO_ENABLED 0
 ENV GOOS linux
 RUN go-wrapper install -a -installsuffix cgo 
 
-FROM scratch
-COPY --from=0 /go/bin/app .
-CMD ["/app"]
+CMD ["go-wrapper", "run"]
+# FROM scratch
+# COPY --from=0 /go/bin/app .
+# CMD ["/app"]
