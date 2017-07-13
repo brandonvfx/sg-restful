@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-version="$(git describe --tags HEAD 2>/dev/null || true)"
+version="$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)"
 
 if [ -z "$version" ]; then
   version="$(cat version)"

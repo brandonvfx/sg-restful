@@ -9,7 +9,7 @@ RUN go-wrapper download
 #CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
 ENV CGO_ENABLED 0
 ENV GOOS linux
-RUN go-wrapper install -a -installsuffix cgo 
+RUN go-wrapper install -ldflags "-X main.Version=`./script/version`" -a -installsuffix cgo 
 
 CMD ["go-wrapper", "run"]
 # FROM scratch
