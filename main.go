@@ -87,6 +87,9 @@ func main() {
 		log.Infof("Shotgun Host: %v", c.String("shotgun-host"))
 		config := newClientConfig(Version, c.String("shotgun-host"))
 
+		qpm := GetQPManager()
+		qpm.SetActiveParsers("format1", "format2", "format3")
+
 		r := router(config)
 		corsMiddleware := cors.AllowAll()
 
