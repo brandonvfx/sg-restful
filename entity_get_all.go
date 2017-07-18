@@ -79,10 +79,15 @@ func newQueryCondition(path string, relation string, values interface{}) queryCo
 		Path:     path,
 		Relation: relation,
 	}
-	switch reflect.TypeOf(values).Kind() {
-	case reflect.Slice:
-		cond.Values = values.([]interface{})
-	default:
+	typeof := reflect.TypeOf(values)
+	if typeof != nil {
+		switch typeof.Kind() {
+		case reflect.Slice:
+			cond.Values = values.([]interface{})
+		default:
+			cond.Values = []interface{}{values}
+		}
+	} else {
 		cond.Values = []interface{}{values}
 	}
 	return cond
