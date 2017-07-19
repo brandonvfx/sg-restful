@@ -7,7 +7,8 @@ SG Restful is a restful interface for the [Shotgun](http://shotgunsoftware.com) 
 
 ### Tags
 
-- `0.5.2-beta.1`, `latest`
+- `0.6.0-beta.1`, `latest`
+- `0.5.2-beta.1`
 
 ### Deploy
 
