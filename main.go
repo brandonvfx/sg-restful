@@ -35,6 +35,7 @@ func router(config clientConfig) *mux.Router {
 	//             HandlerFunc(entityAddFollowersHandler(config)).Methods("POST")
 	//entityRoutes.Path("/{entity_type}/{id:[0-9]+}/followers/{user_type}/{user_id:[0-9]+}").
 	//		       HandlerFunc(entityDeleteFollowersHandler(config)).Methods("DELETE")
+	entityRoutes.Path("/{entity_type}/summarize").HandlerFunc(entitySummarizeHandler(config)).Methods("GET")
 	entityRoutes.Path("/{entity_type}").HandlerFunc(entityGetAllHandler(config)).Methods("GET")
 	entityRoutes.Path("/{entity_type}").HandlerFunc(entityCreateHandler(config)).Methods("POST")
 

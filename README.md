@@ -1,22 +1,34 @@
-# SG Restful - WIP [![Build Status](https://travis-ci.org/brandonvfx/sg-restful.svg?branch=master)](https://travis-ci.org/brandonvfx/sg-restful)
+# SG Restful - WIP [![Build Status](https://travis-ci.org/brandonvfx/sg-restful.svg?branch=master)](https://travis-ci.org/brandonvfx/sg-restful) [![Docker Build Status](https://img.shields.io/docker/build/brandonvfx/sg-restful.svg)](https://hub.docker.com/r/brandonvfx/sg-restful)
 
-## NOT PRODUCTION READY!
 
 SG Restful is a restful interface for the [Shotgun](http://shotgunsoftware.com)  Api.
 
+## Docker
 
-## What works currently
+### Tags
 
-### Entities
+- `0.5.2-beta.1`, `latest`
 
-- Read
-    - Get by id
-    - Get all
-    - Returning fields
-    - Pagination
+### Deploy
+
+```
+docker run -e SG_HOST=<your shotgun server> -p 8000:8000 brandonvfx/sg-restful
+```
+
+## Endpoints
+
+- Find by id
+    - GET /[entity type]/[id]
+- Find all
+    - GET /[entity type]
+- Summarize
+    - GET /[entity type]/summarize
 - Create
+    - POST /[entity type]
 - Update
+    - PATCH /[entity type]/[id]
 - Delete
+    - DELETE /[entity type]/[id]
 
 
 ## Auth
@@ -34,13 +46,23 @@ User `Authorization` header:
 Basic-User <base64 user_name:user_password>
 ```
 
-## Query String
+## Query Strings
 
+### Read
 - page (int): Page of results to return.
 - limit (int): Number of results per page to return
 - fields (comma separated listed of string): The fields/columns to return.
 - q (string): The query to execute. Syntax below.
 
+### Summarize 
+- q (string): The query to execute. Syntax below.
+- summaries (json): array of hashes. Each hash should have 2 key/value pairs:
+    - field: the Shotgun field to summarize
+    - type: the type of summary to do. (see the Shotgun documentation)
+- groupings (json): array of hashes. Each hash should have 3 key/value pairs: 
+    - field: the Shotgun field to group on
+    - direction: the direction to sort
+    - type: the grouping type. (see the Shotgun documentation)
 
 ## Query Syntax
 
@@ -78,7 +100,7 @@ q=[[<name>, <relation>, <values>],...]
 
 ### Tags
 
-In order to facilitate testing, sg-restful makes use of a mocks from the testify package. Because of this, tests should be run using `go test -tags test`.
+In order to facilitate testing, sg-restful makes use of a mocks from the testify package. Because of this, tests should be run using `script/test`.
 
 ### Writing Out a Log File
 
@@ -91,5 +113,5 @@ Where <time> is the current time using the following format string `"20060102150
 You can either persist this value in your shell or prefix your go test command like so:
 
 ```
-env SG-RESTFUL_LOG_TO_FILE="yes" go test -tag test
+env SG-RESTFUL_LOG_TO_FILE="yes" script/test
 ```

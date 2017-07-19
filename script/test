@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-go test -tags=test -v ./...
+go test -tags=test -v $(go list ./... | grep -v /vendor/)
